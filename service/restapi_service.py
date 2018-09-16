@@ -40,6 +40,28 @@ def getAccountBalance(account_id):
     setHeaders()
     return result
 
+@route('/peers/count', method='GET')
+def getPeerCount():
+    count = '0'
+    try:
+        peers = node_rpc_helper.getPeers()
+        if (type(peers) is not dict) and (type(peers) is not list):
+            return peers
+        count = str(len(peers))
+    except:
+        count ='ERROR'
+    setHeaders()
+    return count
+
+@route('/peers/list', method='GET')
+def getPeerList():
+    try:
+        peers = node_rpc_helper.getPeers()
+    except:
+        peers ='ERROR'
+    setHeaders()
+    return peers
+
 # Entry, startup
 config = config.readConfig()
 

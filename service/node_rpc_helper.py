@@ -8,7 +8,6 @@ class Rai:
     def __getattr__(self, name, *args):
         def function (*args):
             global server
-
             if server:
                 request = {}
                 request["action"] = name
@@ -41,7 +40,10 @@ class Rai:
 
         return function
 
-server = 'http://localhost:54300'
+config = config.readConfig()
+server = '?'
+if 'rpc.baseurl' in config:
+    server = config['rpc.baseurl']
 rai = Rai()
 
 def getBlockCount():
@@ -77,10 +79,25 @@ def getAccountBalance(accId):
         balance = rai.account_balance({"account": accId})
         if balance is None:
             return 'ERROR'
-        if 'error' in resp:
-            return 'ERROR: ' + resp['error']
+        if 'error' in balance:
+            return 'ERROR: ' + balance['error']
         if 'balance' not in balance:
             return 'ERROR'
     except:
         return "ERROR"
     return balance['balance']
+
+def getPeers():
+    global rai
+    try:
+        peers = rai.peers()
+        #print(peers)
+        if peers is None:
+            return 'ERROR'
+        if 'error' in peers:
+            return 'ERROR: ' + peers['error']
+        if 'peers' not in peers:
+            return 'ERROR'
+    except:
+        return 'ERROR'
+    return peers['peers']
