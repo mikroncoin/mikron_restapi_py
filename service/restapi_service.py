@@ -1,10 +1,9 @@
-import config
 import account_helper
 import node_rpc_helper
 
 import os
 import json
-from bottle import run, post, request, response, get, route, static_file
+from bottle import post, request, response, get, route, static_file
 from threading import Thread
 
 def setHeaders():
@@ -35,7 +34,7 @@ def getBlockCountUnchecked():
 
 @route('/account/balance/<account_id>', method='GET')
 def getAccountBalance(account_id):
-    balance = account_helper.getAccountBalance(account_id)
+    balance = node_rpc_helper.getAccountBalance(account_id)
     result = str(balance)
     setHeaders()
     return result
@@ -45,9 +44,15 @@ def getPeerCount():
     count = '0'
     try:
         peers = node_rpc_helper.getPeers()
-        if (type(peers) is not dict) and (type(peers) is not list):
-            return peers
-        count = str(len(peers))
+        print(peers)
+        print(type(peers))
+        if ((type(peers) is str) and peers == ''):
+            # empty peer list, valid
+            count = '0'
+        else:
+            if (type(peers) is not dict) and (type(peers) is not list):
+                return peers
+            count = str(len(peers))
     except:
         count ='ERROR'
     setHeaders()
@@ -61,12 +66,3 @@ def getPeerList():
         peers ='ERROR'
     setHeaders()
     return peers
-
-# Entry, startup
-config = config.readConfig()
-
-print('listen.host', config['listen.host'])
-print('listen.port', config['listen.port'])
-print('config', config)
-
-run(host=config['listen.host'], port=config['listen.port'], debug=True)

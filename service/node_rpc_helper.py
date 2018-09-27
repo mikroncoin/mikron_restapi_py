@@ -1,4 +1,5 @@
 import config
+import account_helper
 
 import json
 import requests
@@ -40,12 +41,6 @@ class Rai:
 
         return function
 
-config = config.readConfig()
-server = '?'
-if 'rpc.baseurl' in config:
-    server = config['rpc.baseurl']
-rai = Rai()
-
 def getBlockCount():
     global rai
     resp = 'ERROR'
@@ -77,6 +72,9 @@ def getAccountBalance(accId):
     try:	
         #print("getAccountBalance ", accId)
         balance = rai.account_balance({"account": accId})
+    except:
+        return "ERROR: could not retrieve"
+    try:
         if balance is None:
             return 'ERROR'
         if 'error' in balance:
@@ -85,7 +83,9 @@ def getAccountBalance(accId):
             return 'ERROR'
     except:
         return "ERROR"
-    return balance['balance']
+    # Unit conversion
+    balMik = account_helper.fromRawToMikron(balance['balance'])
+    return balMik
 
 def getPeers():
     global rai
@@ -101,3 +101,23 @@ def getPeers():
     except:
         return 'ERROR'
     return peers['peers']
+
+def doSend(src_walletid, src_addr, dest_addr, amount, unique_id):
+    global rai
+    try:
+        print("amount", amount)
+        amount_raw = account_helper.fromMikronToRaw(amount)
+        #print(amount_raw)
+        send_params = {"wallet": src_walletid, "source": src_addr, "destination": dest_addr, "amount": amount_raw, "id": unique_id}
+        print("send_params", send_params)
+        resp = rai.send(send_params)
+        print(resp)
+        return resp
+    except:
+        return {"error": "exception"}
+
+config = config.readConfig()
+server = '?'
+if 'rpc.baseurl' in config:
+    server = config['rpc.baseurl']
+rai = Rai()
