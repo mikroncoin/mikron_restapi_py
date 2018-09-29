@@ -14,6 +14,7 @@ def fromMikronToRaw(mikron):
         return "ERROR: Numercial conversion"
     # do the 10^30 multiplication in two steps to avoid non-zero trailing digits due to rounding error
     raw = math.floor(mikronFloat * float(1e20))
-    raw = raw * 10000000000
-    return raw
+    rawStr = str(int(raw))
+    rawStr = rawStr + "0000000000"
+    return rawStr
 
