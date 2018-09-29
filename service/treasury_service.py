@@ -13,7 +13,7 @@ def setHeaders():
     response.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE, OPTIONS'
     response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
 
-# Example: curl -d "{'pool_account_id': 'FaucetPool', 'pool_account_password': 'testP00l', 'dest_addr': 'mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs', 'amount': '1', 'unique_id': '1234500017'}" http://localhost:8090/treasury/send
+# Example: curl -d "{'pool_account_id': 'FaucetPool', 'pool_account_password': 'some_password', 'dest_addr': 'mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs', 'amount': '1', 'unique_id': '1234500017'}" http://localhost:8090/treasury/send
 @route('/treasury/send', method='POST')
 def send():
     global config
