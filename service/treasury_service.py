@@ -13,7 +13,7 @@ def setHeaders():
     response.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE, OPTIONS'
     response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
 
-# Example: curl -d "{'dest_addr':'mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs', 'amount': '3', 'unique_id': '1234500017'}" http://localhost:8090/treasury/send
+# Example: curl -d "{'pool_account_id': 'FaucetPool', 'pool_account_password': 'testP00l', 'dest_addr': 'mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs', 'amount': '1', 'unique_id': '1234500017'}" http://localhost:8090/treasury/send
 @route('/treasury/send', method='POST')
 def send():
     global config
@@ -26,26 +26,42 @@ def send():
     postjson = json.loads(postdata.replace("'", '"'))
     #print("postjson ", postjson)
 
-    #pool_account_id = postjson["pool_account_id"]   # ignore for now
-    #pool_account_password = postjson["pool_account_password"]   # ignore for now
-
+    pool_account_id = postjson["pool_account_id"]
+    pool_account_password = postjson["pool_account_password"]
     dest_addr = postjson["dest_addr"]
     #dest_addr = "mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs"
     amount = postjson["amount"]
     unique_id = postjson["unique_id"]
-    #unique_id = "1234500010"
+
     #print("dest_addr ", dest_addr, " amount ", amount, " id ", unique_id)
+    if (pool_account_id not in config["treasury_service.account"]) or (pool_account_password != config["treasury_service.account"][pool_account_id]["password"]):
+        return {"error": "source account not found or wrong password"}
+    src_addr = config["treasury_service.account"][pool_account_id]["address"]
+    src_walletid = config["treasury_service.account"][pool_account_id]["walletid"]
+    print("src_addr ", src_addr, " walletid ", src_walletid)
 
-    # TODO, these should come from config, based on pool_account_id and pass
-    src_addr = "mik_1rn3b9rhijhsehzn4aoudkczhixys7fumptohji6zeecctu4jb5ozfci5me3"
-    src_walletid = "763952E04622426364BD62DD9A24056E6C0E48A2013BD3367AC8091F28FB274E"
+    max_amount = min(100, float(config["treasury_service.max_amount"]))
+    min_amount = max(0.000000001, float(config["treasury_service.min_amount"]))
+    resp = sendIntern(src_addr, src_walletid, dest_addr, amount, unique_id, max_amount, min_amount)
+    print("resp ", resp)
+    setHeaders()
+    return resp
 
+def sendIntern(src_addr, src_walletid, dest_addr, amount, unique_id, max_amount, min_amount):
+    amountFloat = 0
+    try:
+        amountFloat = float(amount)
+    except:
+        return {"error": "Invalid amount"}
+    if (amountFloat > max_amount):
+        return {"error": "Amount too high (max " + str(max_amount) + ")"}
+    if (amountFloat < min_amount):
+        return {"error": "Amount too small (min " + str(min_amount) + ")"}
     # debug: retrieve balance
     src_orig_balance = node_rpc_helper.getAccountBalance(src_addr)
     print("orig src balance", src_orig_balance)
 
     resp = node_rpc_helper.doSend(src_walletid, src_addr, dest_addr, amount, unique_id)
-    setHeaders()
     if 'error' in resp:
         return resp
     if 'block' not in resp:
