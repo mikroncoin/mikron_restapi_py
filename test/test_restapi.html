@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+function doGetAccountBalance() {
+    acc = document.getElementById('getacc_address').value;
+    console.log("acc: '" + acc + "'")
+    url = restServiceBaseUrl() + "/account/balance/" + acc;
+    console.log("url: '" + url + "'")
+    var client = new XMLHttpRequest();
+    client.onload = getAccBalRespHandler;
+    client.open('GET', url, true);
+    client.send();
+}
+
+function getAccBalRespHandler() {
+    //console.log(this.response);
+    document.getElementById('getacc_balance').value = this.responseText;
+}
+
+var sendCounter = 0;
+
+function doSend() {
+    document.getElementById('send_res_hash').value = 'Send in progress...';
+    pool_account_id = document.getElementById('send_acc_id').value;
+    pool_account_password = document.getElementById('send_acc_pass').value;
+    dest_addr = document.getElementById('send_dest_address').value;
+    amount = document.getElementById('send_amount').value;
+    sendCounter = sendCounter + 1;
+    var currentdate = new Date();
+    unique_id = "0" + String(currentdate.getMonth()) + String(currentdate.getDay()) + String(currentdate.getHours()) + String(currentdate.getMinutes()) + String(currentdate.getSeconds()) + String(currentdate.getMilliseconds()) +
+        "_" + String(sendCounter) // + "_" + dest_addr;
+    //console.log("unique_id: ", unique_id);
+    req = {
+        "pool_account_id": pool_account_id,
+        "pool_account_password": pool_account_password,
+        "dest_addr": dest_addr,
+        "amount": amount, 
+        "unique_id": unique_id
+    }
+    reqStr = JSON.stringify(req)
+    console.log("req: " + reqStr);
+    url = restServiceBaseUrl() + "/treasury/send";
+    console.log("url: '" + url + "'")
+    var client = new XMLHttpRequest();
+    client.onload = sendRespHandler;
+    client.open('POST', url, true);
+    client.setRequestHeader("Content-Type", "application/json")
+    client.send(reqStr);
+}
+
+function sendRespHandler() {
+    console.log(this.response);
+    setDebug(this.response);
+    resp = JSON.parse(this.response);
+    if (!isNullOrEmpty(resp['block_hash'])) {
+        block_hash = resp['block_hash'];
+        document.getElementById('send_res_hash').value = block_hash;
+        setDebug("Send successful, hash: " + block_hash);
+    } else {
+        if (!isNullOrEmpty(resp['error'])) {
+            setDebug("Error: " + resp['error']);
+        } else {
+            setDebug("Error: " + this.response);
+        }
+    }
+}
+
+function restServiceBaseUrl() {
+    return document.getElementById('baseurl').value;
+}
+
+function isNullOrEmpty(s) { return (s === null || typeof (s) === 'undefined' || s == ''); }
+
+function setDebug(data) {
+    document.getElementById("debug").innerHTML = data;
+}
+        </script>
+    </head>
+    <body>
+        <div>
+            <strong>Test page for Mikron Rest Api Service</strong>
+        </div>
+
+        <div>
+            <strong>Configuration:</strong>
+            <table>
+                <form>
+                    <tr>
+                        <td>
+                            Mikron Rest API Base URL:
+                        </td>
+                        <td>
+                            <input id="baseurl" size="40" value="http://localhost:8080"></input>
+                        </td>
+                    </tr>
+                </form>
+            </table>
+        </div>
+
+        <div>
+            <strong>Get Account balance</strong>
+            <table>
+                <form>
+                    <tr>
+                        <td>
+                            Address:
+                        </td>
+                        <td>
+                            <input id="getacc_address" size="80" value="mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs"></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Balance:
+                        </td>
+                        <td>
+                            <input id="getacc_balance" size="20" value="" readonly="true"></input> Mikron
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button type="button" onclick="doGetAccountBalance()">Get Balance</button>
+                        </td>
+                        <td></td>
+                    </tr>
+                </form>
+            </table>
+        </div>
+
+        <div>
+            <strong>Send to account</strong>
+            <table>
+                <form>
+                    <tr>
+                        <td>
+                            Send account ID:
+                        </td>
+                        <td>
+                            <input id="send_acc_id" size="30" value="FaucetPool"></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Send account password:
+                        </td>
+                        <td>
+                            <input id="send_acc_pass" type="password" size="30" value=""></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Destination address:
+                        </td>
+                        <td>
+                            <input id="send_dest_address" size="80" value="mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs"></input>
+                        </td>
+                    </tr>                    
+                    <tr>
+                        <td>
+                            Amount:
+                        </td>
+                        <td>
+                            <input id="send_amount" size="20" value="1"></input> Mikron
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Result block hash:
+                        </td>
+                        <td>
+                            <input id="send_res_hash" size="80" value="<block hash>" readonly="true"></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button type="button" onclick="doSend()">Send</button>
+                        </td>
+                        <td></td>
+                    </tr>
+                </form>
+            </table>
+        </div>
+
+        <div>
+            <strong>Generate mikron address for me</strong>
+        </div>
+
+        <p id="debug">(debug result comes here)</p>
+
+    </body>
+</html>
