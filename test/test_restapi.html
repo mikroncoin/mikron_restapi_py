@@ -3,6 +3,7 @@
     <head>
         <script>
 function doGetBlockCount() {
+    document.getElementById('getblockcount_res').value = "getting..."
     url = restServiceBaseUrl() + "/blocks/count";
     console.log("url: '" + url + "'")
     var client = new XMLHttpRequest();
