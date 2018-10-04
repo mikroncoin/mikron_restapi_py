@@ -63,7 +63,11 @@ def getPeerCount():
 def getPeerList():
     try:
         peers = node_rpc_helper.getPeers()
+        print(peers)
+        print(type(peers))
+        peers = '{"peer_list": ' + str(peers).replace("'", '"') + '}'
     except:
         peers ='ERROR'
+    #print(peers)
     setHeaders()
     return peers
