@@ -102,16 +102,27 @@ def getPeers():
         return 'ERROR'
     return peers['peers']
 
-def doSend(src_walletid, src_addr, dest_addr, amount, unique_id):
+def doSend(src_walletid, src_account, dest_account, amount, unique_id):
     global rai
     try:
-        print("amount", amount)
+        #print("amount", amount)
         amount_raw = account_helper.fromMikronToRaw(amount)
         #print(amount_raw)
-        send_params = {"wallet": src_walletid, "source": src_addr, "destination": dest_addr, "amount": amount_raw, "id": unique_id}
-        print("send_params", send_params)
+        send_params = {"wallet": src_walletid, "source": src_account, "destination": dest_account, "amount": amount_raw, "id": unique_id}
+        #print("send_params", send_params)
         resp = rai.send(send_params)
-        print(resp)
+        #print(resp)
+        return resp
+    except:
+        return {"error": "exception"}
+
+def doCreateAccount(src_walletid):
+    global rai
+    try:
+        send_params = {"wallet": src_walletid}
+        #print("send_params", send_params)
+        resp = rai.account_create(send_params)
+        #print(resp)
         return resp
     except:
         return {"error": "exception"}

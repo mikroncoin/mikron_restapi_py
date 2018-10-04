@@ -3,6 +3,7 @@ import config
 #import node_rpc_helper
 import restapi_service
 import treasury_service
+import receiver_service
 
 from bottle import run
 

@@ -14,14 +14,9 @@ def readConfig():
     config['treasury_service.enabled'] = 'false'
     config['treasury_service.max_amount'] = 100
     config['treasury_service.min_amount'] = 0.000000001
-    config['treasury_service.account'] = {
-        "TestPool": {
-            "id": "FaucetPool",
-            "password": "some_password",
-            "walletid": "74A552E04622426364BD62DD9A24056E6C0E48A2013BD3367AC8091F28FB274E",
-            "address": "mik_2pn3b9rhijhsehzn4aoudkczhixys7fumptohji6zeecctu4jb5ozfci5ac4"
-        }
-    }
+    config['treasury_service.account'] = { }
+    config['receiver_service.enabled'] = 'false'
+    config['receiver_service.account'] = { }
 
     if 'main' in tmpconfig:
         if 'listen.host' in tmpconfig['main']:
@@ -48,7 +43,23 @@ def readConfig():
             config['treasury_service.account'][account]['password'] = tmpconfig['treasury_service']['account.1.password']
         if 'account.1.walletid' in tmpconfig['treasury_service']:
             config['treasury_service.account'][account]['walletid'] = tmpconfig['treasury_service']['account.1.walletid']
-        if 'account.1.address' in tmpconfig['treasury_service']:
-            config['treasury_service.account'][account]['address'] = tmpconfig['treasury_service']['account.1.address']
+        if 'account.1.account' in tmpconfig['treasury_service']:
+            config['treasury_service.account'][account]['account'] = tmpconfig['treasury_service']['account.1.account']
+    if 'receiver_service' in tmpconfig:
+        if 'enabled' in tmpconfig['receiver_service']:
+            config['receiver_service.enabled'] = tmpconfig['receiver_service']['enabled']
+        if 'receiver_service.account' not in config:
+            config['receiver_service.account'] = {}
+        # TODO: support more accounts
+        if 'account.1.id' in tmpconfig['receiver_service']:
+            account = tmpconfig['receiver_service']['account.1.id']
+            config['receiver_service.account'][account] = {}
+            config['receiver_service.account'][account]['id'] = account
+        if 'account.1.password' in tmpconfig['receiver_service']:
+            config['receiver_service.account'][account]['password'] = tmpconfig['receiver_service']['account.1.password']
+        if 'account.1.walletid' in tmpconfig['receiver_service']:
+            config['receiver_service.account'][account]['walletid'] = tmpconfig['receiver_service']['account.1.walletid']
+        if 'account.1.account' in tmpconfig['receiver_service']:
+            config['receiver_service.account'][account]['account'] = tmpconfig['receiver_service']['account.1.account']
 
     return config

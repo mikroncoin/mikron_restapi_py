@@ -2,8 +2,21 @@
 <html>
     <head>
         <script>
+function doGetBlockCount() {
+    url = restServiceBaseUrl() + "/blocks/count";
+    console.log("url: '" + url + "'")
+    var client = new XMLHttpRequest();
+    client.onload = blockCountRespHandler;
+    client.open('GET', url, true);
+    client.send();
+}
+
+function blockCountRespHandler() {
+    document.getElementById('getblockcount_res').value = this.responseText;
+}
+
 function doGetAccountBalance() {
-    acc = document.getElementById('getacc_address').value;
+    acc = document.getElementById('getacc_account').value;
     console.log("acc: '" + acc + "'")
     url = restServiceBaseUrl() + "/account/balance/" + acc;
     console.log("url: '" + url + "'")
@@ -24,17 +37,17 @@ function doSend() {
     document.getElementById('send_res_hash').value = 'Send in progress...';
     pool_account_id = document.getElementById('send_acc_id').value;
     pool_account_password = document.getElementById('send_acc_pass').value;
-    dest_addr = document.getElementById('send_dest_address').value;
+    dest_account = document.getElementById('send_dest_account').value;
     amount = document.getElementById('send_amount').value;
     sendCounter = sendCounter + 1;
     var currentdate = new Date();
     unique_id = "0" + String(currentdate.getMonth()) + String(currentdate.getDay()) + String(currentdate.getHours()) + String(currentdate.getMinutes()) + String(currentdate.getSeconds()) + String(currentdate.getMilliseconds()) +
-        "_" + String(sendCounter) // + "_" + dest_addr;
+        "_" + String(sendCounter) // + "_" + dest_account;
     //console.log("unique_id: ", unique_id);
     req = {
         "pool_account_id": pool_account_id,
         "pool_account_password": pool_account_password,
-        "dest_addr": dest_addr,
+        "dest_account": dest_account,
         "amount": amount, 
         "unique_id": unique_id
     }
@@ -57,6 +70,42 @@ function sendRespHandler() {
         block_hash = resp['block_hash'];
         document.getElementById('send_res_hash').value = block_hash;
         setDebug("Send successful, hash: " + block_hash);
+    } else {
+        if (!isNullOrEmpty(resp['error'])) {
+            setDebug("Error: " + resp['error']);
+        } else {
+            setDebug("Error: " + this.response);
+        }
+    }
+}
+
+function doCreateAccount() {
+    document.getElementById('recv_res_account').value = 'Create in progress...';
+    pool_account_id = document.getElementById('recv_acc_id').value;
+    pool_account_password = document.getElementById('recv_acc_pass').value;
+    req = {
+        "pool_account_id": pool_account_id,
+        "pool_account_password": pool_account_password,
+    }
+    reqStr = JSON.stringify(req)
+    console.log("req: " + reqStr);
+    url = restServiceBaseUrl() + "/receiver/create_account";
+    console.log("url: '" + url + "'")
+    var client = new XMLHttpRequest();
+    client.onload = createAccountRespHandler;
+    client.open('POST', url, true);
+    client.setRequestHeader("Content-Type", "application/json")
+    client.send(reqStr);
+}
+
+function createAccountRespHandler() {
+    console.log(this.response);
+    setDebug(this.response);
+    resp = JSON.parse(this.response);
+    if (!isNullOrEmpty(resp['account'])) {
+        account = resp['account'];
+        document.getElementById('recv_res_account').value = account;
+        setDebug("Send successful, account: " + account);
     } else {
         if (!isNullOrEmpty(resp['error'])) {
             setDebug("Error: " + resp['error']);
@@ -98,16 +147,27 @@ function setDebug(data) {
             </table>
         </div>
 
+        <input id="send_res_hash" size="80" value="<block hash>" readonly="true"></input>
+
+        <div>
+            <strong>Get Block Count</strong>
+            <form>
+                <input id="getblockcount_res" size="20" value="<block count>" readonly="true"></input>
+                <p/>
+                <button type="button" onclick="doGetBlockCount()">Get Block Count</button>
+            </form>
+        </div>
+
         <div>
             <strong>Get Account balance</strong>
             <table>
                 <form>
                     <tr>
                         <td>
-                            Address:
+                            Account:
                         </td>
                         <td>
-                            <input id="getacc_address" size="80" value="mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs"></input>
+                            <input id="getacc_account" size="80" value="mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs"></input>
                         </td>
                     </tr>
                     <tr>
@@ -150,10 +210,10 @@ function setDebug(data) {
                     </tr>
                     <tr>
                         <td>
-                            Destination address:
+                            Destination account:
                         </td>
                         <td>
-                            <input id="send_dest_address" size="80" value="mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs"></input>
+                            <input id="send_dest_account" size="80" value="mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs"></input>
                         </td>
                     </tr>                    
                     <tr>
@@ -183,7 +243,41 @@ function setDebug(data) {
         </div>
 
         <div>
-            <strong>Generate mikron address for me</strong>
+            <strong>Generate mikron account for me</strong>
+            <table>
+                <form>
+                    <tr>
+                        <td>
+                            Receiver account ID:
+                        </td>
+                        <td>
+                            <input id="recv_acc_id" size="30" value="ReceiverPool"></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Send account password:
+                        </td>
+                        <td>
+                            <input id="recv_acc_pass" type="password" size="30" value=""></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Result account:
+                        </td>
+                        <td>
+                            <input id="recv_res_account" size="80" value="<account>" readonly="true"></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button type="button" onclick="doCreateAccount()">Create Account</button>
+                        </td>
+                        <td></td>
+                    </tr>
+                </form>
+            </table>
         </div>
 
         <p id="debug">(debug result comes here)</p>

@@ -12,6 +12,7 @@ def setHeaders():
     response.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE, OPTIONS'
     response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
 
+# Example: curl http://localhost:8090/blocks/count
 @route('/blocks/count', method='GET')
 def getBlockCount():
     count = ''
