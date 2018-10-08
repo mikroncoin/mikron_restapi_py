@@ -87,6 +87,32 @@ def getAccountBalance(accId):
     balMik = account_helper.fromRawToMikron(balance['balance'])
     return balMik
 
+def getAccountHistory(accId, count):
+    global rai
+    try:
+        history = rai.account_history({"account": accId, "count":count})
+        #print(history)
+    except:
+        return {"error": "exception"}
+    try:
+        if history is None:
+            return {"error": "empty response"}
+        if 'error' in history:
+            return {"error": history['error']}
+        if 'history' not in history:
+            return {"error": "Missing history"}
+    except:
+        return {"error": "error"}
+    #print(history['history'])
+    # Unit conversions
+    for h in history['history']:
+        #print(h)
+        if 'amount' in h:
+            amntMik = account_helper.fromRawToMikron(h['amount'])
+            #print(h['amount'], amntMik)
+            h['amount'] = amntMik
+    return history
+
 def getPeers():
     global rai
     try:

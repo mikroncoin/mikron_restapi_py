@@ -33,12 +33,20 @@ def getBlockCountUnchecked():
     setHeaders()
     return count
 
+# Example: curl http://localhost:8090/account/balance/mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs
 @route('/account/balance/<account_id>', method='GET')
 def getAccountBalance(account_id):
     balance = node_rpc_helper.getAccountBalance(account_id)
     result = str(balance)
     setHeaders()
     return result
+
+# Example: curl http://localhost:8090/account/history/mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs
+@route('/account/history/<account_id>', method='GET')
+def getAccountHistory(account_id):
+    history = node_rpc_helper.getAccountHistory(account_id, 20)
+    setHeaders()
+    return history
 
 @route('/peers/count', method='GET')
 def getPeerCount():

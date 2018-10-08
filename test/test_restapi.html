@@ -17,6 +17,7 @@ function blockCountRespHandler() {
 }
 
 function doGetAccountBalance() {
+    document.getElementById('getacc_balance').value = 0;
     acc = document.getElementById('getacc_account').value;
     console.log("acc: '" + acc + "'")
     url = restServiceBaseUrl() + "/account/balance/" + acc;
@@ -30,6 +31,33 @@ function doGetAccountBalance() {
 function getAccBalRespHandler() {
     //console.log(this.response);
     document.getElementById('getacc_balance').value = this.responseText;
+}
+
+function doGetAccountHistory() {
+    document.getElementById('get_acc_hist').value = "getting...";
+    acc = document.getElementById('getacc_account').value;
+    console.log("acc: '" + acc + "'")
+    url = restServiceBaseUrl() + "/account/history/" + acc;
+    console.log("url: '" + url + "'")
+    var client = new XMLHttpRequest();
+    client.onload = getAccHisRespHandler;
+    client.open('GET', url, true);
+    client.send();
+}
+
+function getAccHisRespHandler() {
+    console.log(this.response);
+    resp = JSON.parse(this.response);
+    hist = "";
+    if (!isNullOrEmpty(resp['history'])) {
+        histArr = resp['history'];
+        hist = String(histArr.length) + " elems: ";
+        var arrayLength = histArr.length;
+        for (var i = 0; i < arrayLength; i++) {
+            hist = hist + histArr[i]['type'] + " " + histArr[i]['amount'] + ", ";
+        }
+        document.getElementById('get_acc_hist').value = hist;
+    }
 }
 
 var sendCounter = 0;
@@ -124,6 +152,7 @@ function isNullOrEmpty(s) { return (s === null || typeof (s) === 'undefined' || 
 
 function setDebug(data) {
     document.getElementById("debug").innerHTML = data;
+    console.log(data);
 }
         </script>
     </head>
@@ -158,7 +187,7 @@ function setDebug(data) {
         </div>
 
         <div>
-            <strong>Get Account balance</strong>
+            <strong>Get Account Balance, History</strong>
             <table>
                 <form>
                     <tr>
@@ -181,7 +210,23 @@ function setDebug(data) {
                         <td>
                             <button type="button" onclick="doGetAccountBalance()">Get Balance</button>
                         </td>
-                        <td></td>
+                        <td>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            History:
+                        </td>
+                        <td>
+                            <input id="get_acc_hist" size="100" value="" readonly="true"></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button type="button" onclick="doGetAccountHistory()">Get History</button>
+                        </td>
+                        <td>
+                        </td>
                     </tr>
                 </form>
             </table>
