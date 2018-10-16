@@ -111,6 +111,9 @@ def getAccountHistory(accId, count):
             amntMik = account_helper.fromRawToMikron(h['amount'])
             #print(h['amount'], amntMik)
             h['amount'] = amntMik
+        if 'balance' in h:
+            balMik = account_helper.fromRawToMikron(h['balance'])
+            h['balance'] = balMik
     return history
 
 def getPeers():
