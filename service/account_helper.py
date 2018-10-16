@@ -1,11 +1,21 @@
 import math
 
 def fromRawToMikron(raw):
+    # do the 10^30 multiplication in two steps to avoid non-zero trailing digits due to rounding error
     try:
-        rawFloat = float(raw)
+        rawFloat = 0
+        if (len(raw) <= 10):
+            # short string, convert in one
+            rawFloat = float(raw)
+            rawFloat = rawFloat / float(1e30)
+        else:
+            # long string, simple cut the last 10 digits
+            raw = raw[:len(raw)-10]
+            rawFloat = float(raw)
+            rawFloat = rawFloat / float(1e20)
     except:
         return "ERROR: Numercial conversion"
-    return rawFloat / float(1e30)
+    return rawFloat
 
 def fromMikronToRaw(mikron):
     try:
