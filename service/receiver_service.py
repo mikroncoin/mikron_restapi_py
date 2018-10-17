@@ -6,6 +6,7 @@ import os
 import json
 from bottle import post, request, response, get, route, static_file
 from threading import Thread
+import requests
 
 def setHeaders():
     response.content_type = 'application/json'
@@ -48,5 +49,32 @@ def createAccount():
     return {
         "account": resp['account']
     }
+
+# Invoked by the node, RPC callback
+@route('/rpccallback', method='POST')
+def rpcCallback():
+    global config
+    postdata = request.body.read().decode('utf8')
+    #print("postdata ", postdata)
+    postjson = json.loads(postdata.replace("'", '"'))
+    #print("postjson ", postjson)
+    if 'account' not in postjson:
+        return
+    account = postjson['account']
+    print("RPC callback", "account", account)
+
+    # TODO: filter out if account is among to be watched!!!
+
+    webhook = config['receiver_service.account']['ReceiverPool']['receiver_webhook']
+    #print(webhook)
+    invokeWebhook (webhook, account)
+    return "ok"
+
+# Call into the hook of a partner site, URL of the form 'https://mikron.io/webhook/{account}'
+def invokeWebhook (webHookUrl, account):
+    url = webHookUrl.replace('{account}', account)
+    print("Invoking Web hook, url: ", url)
+    res = requests.get(url)
+    print(res.text)
 
 config = config.readConfig()

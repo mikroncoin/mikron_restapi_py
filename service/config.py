@@ -61,5 +61,7 @@ def readConfig():
             config['receiver_service.account'][account]['walletid'] = tmpconfig['receiver_service']['account.1.walletid']
         if 'account.1.account' in tmpconfig['receiver_service']:
             config['receiver_service.account'][account]['account'] = tmpconfig['receiver_service']['account.1.account']
+        if 'account.1.receiver_webhook' in tmpconfig['receiver_service']:
+            config['receiver_service.account'][account]['receiver_webhook'] = tmpconfig['receiver_service']['account.1.receiver_webhook']
 
     return config
