@@ -74,7 +74,11 @@ def rpcCallback():
 def invokeWebhook (webHookUrl, account):
     url = webHookUrl.replace('{account}', account)
     print("Invoking Web hook, url: ", url)
-    res = requests.get(url)
-    print(res.text)
+    t = Thread(target=invokeInBg, args=(url,))
+    t.start()
+
+def invokeInBg(url):
+    response = requests.get(url)
+    print(response.url, response.text)
 
 config = config.readConfig()
