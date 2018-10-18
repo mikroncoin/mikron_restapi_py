@@ -64,10 +64,12 @@ def rpcCallback():
     print("RPC callback", "account", account)
 
     # TODO: filter out if account is among to be watched!!!
-
-    webhook = config['receiver_service.account']['ReceiverPool']['receiver_webhook']
-    #print(webhook)
-    invokeWebhook (webhook, account)
+    # for now, call into all of them...
+    for rec_account in config['receiver_service.account']:
+        if 'receiver_webhook' in config['receiver_service.account'][rec_account]:
+            webhook = config['receiver_service.account'][rec_account]['receiver_webhook']
+            #print(webhook)
+            invokeWebhook (webhook, account)
     return "ok"
 
 # Call into the hook of a partner site, URL of the form 'https://mikron.io/webhook/{account}'
@@ -79,6 +81,6 @@ def invokeWebhook (webHookUrl, account):
 
 def invokeInBg(url):
     response = requests.get(url)
-    print(response.url, response.text)
+    print(response.url, response.text[:200])
 
 config = config.readConfig()
