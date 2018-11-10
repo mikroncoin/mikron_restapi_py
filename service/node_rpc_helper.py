@@ -67,6 +67,19 @@ def getBlockCountUnchecked():
         return 'ERROR'
     return resp['unchecked']
 
+def getFrontierCount():
+    global rai
+    resp = 'ERROR'
+    try:
+        resp = rai.frontier_count({})
+        if 'error' in resp:
+            return resp['error']
+        if 'count' not in resp:
+            return 'ERROR'
+    except:
+        return 'ERROR'
+    return resp['count']
+
 def getAccountBalance(accId):
     global rai
     try:	
