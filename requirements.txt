@@ -1,2 +1,4 @@
+sqlite3
 bottle
 grequests
+logging
