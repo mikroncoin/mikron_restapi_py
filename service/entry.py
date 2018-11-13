@@ -4,6 +4,7 @@ import config
 import restapi_service
 import treasury_service
 import receiver_service
+import explorer_hoster
 
 from bottle import run
 

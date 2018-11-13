@@ -1,0 +1,56 @@
+<html>
+    <head>
+        <script>
+function refresh() {
+    document.getElementById('timestamp').innerText = Date.now();
+    document.getElementById('nodes_count').innerText = '?';
+    callGetUrl('/peers/count', (text) => document.getElementById('nodes_count').innerText = 1 + Number(text));
+    document.getElementById('block_count').innerText = '?';
+    callGetUrl('/blocks/count', (text) => document.getElementById('block_count').innerText = text);
+    document.getElementById('frontier_count').innerText = '?';
+    callGetUrl('/frontiers/count', (text) => document.getElementById('frontier_count').innerText = text);
+}
+
+function callGetUrl(url, callback) {
+    //console.log('url ' + url);
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function() {
+        if (http.readyState == XMLHttpRequest.DONE) {
+            if (http.status == 200) {
+                callback(http.responseText);
+            }
+            else if (http.status == 400) {
+                console.log('There was an error 400 ' + url);
+            }
+            else {
+                console.log('Something else other than 200 was returned ' + http.status + ' ' + url);
+            }
+        }
+    };
+
+    http.open("GET", url, true);
+    http.send();
+}
+        </script>
+    </head>
+    <body onload="refresh()">
+        <div>
+            <h1>Mikron Explorer</h1>
+            <div>
+                Number of nodes:  <label id='nodes_count'>?</label>
+            </div>
+            <div>
+                Number of blocks:  <label id='block_count'>?</label>
+            </div>
+            <div>
+                Number of frontiers:  <label id='frontier_count'>?</label>
+            </div>
+            <div>
+                Current time (utc, unix):  <label id='timestamp'>?</label>
+            </div>
+            <div>
+                <button onclick='refresh()'>Refresh</button>
+            </div>
+        </div>
+    </body>
+</html>
