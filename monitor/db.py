@@ -55,11 +55,16 @@ def add_line(timestamp, no_nodes, no_blocks, no_frontiers):
 
     close(conn)
 
-def get_all_lines():
+def get_all_lines_unordered():
     c, conn = connect()
-
     c.execute("SELECT * FROM monitor;")   # ORDER BY time_sec ASC
     ret = c.fetchall()
     close(conn)
+    return ret
 
+def get_all_lines_ordered():
+    c, conn = connect()
+    c.execute("SELECT * FROM monitor ORDER BY time_sec ASC;")
+    ret = c.fetchall()
+    close(conn)
     return ret
