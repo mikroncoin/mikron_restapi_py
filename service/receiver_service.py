@@ -1,6 +1,7 @@
 import config
 import account_helper
 import node_rpc_helper
+import recv_db
 
 import os
 import json
@@ -21,7 +22,7 @@ def createAccountOptions():
 
 # Example: curl -d "{'pool_account_id': 'ReceiverPool', 'pool_account_password': 'some_password'}" http://localhost:8090/receiver/create_account
 @route('/receiver/create_account', method='POST')
-def createAccount():
+def createAccountApi():
     global config
     setHeaders()
     if config['receiver_service.enabled'] != 'true':
@@ -34,10 +35,14 @@ def createAccount():
 
     pool_account_id = postjson["pool_account_id"]
     pool_account_password = postjson["pool_account_password"]
+    return createAccount(pool_account_id, pool_account_password)
+
+def createAccount(pool_account_id, pool_account_password):
+    global config
 
     if (pool_account_id not in config["receiver_service.account"]) or (pool_account_password != config["receiver_service.account"][pool_account_id]["password"]):
         return {"error": "source account not found or wrong password"}
-    src_account = config["receiver_service.account"][pool_account_id]["account"]
+    #src_account = config["receiver_service.account"][pool_account_id]["account"]
     src_walletid = config["receiver_service.account"][pool_account_id]["walletid"]
     #print("walletid ", src_walletid)
 
@@ -46,8 +51,16 @@ def createAccount():
         return resp
     if 'account' not in resp:
         return {"error": "no account in response"}
+
+    account = resp['account']
+    try:
+        # OK, put it in DB
+        recv_db.add_new_rec_account(account, pool_account_id, '', src_walletid)
+    except:
+        print("could not save to DB", account)
+
     return {
-        "account": resp['account']
+        "account": account
     }
 
 # Invoked by the node, RPC callback
