@@ -33,8 +33,6 @@ def create_dbs():
 
     c.execute('''CREATE TABLE monitor
             (time_sec long,
-            time_day_ordinal int,
-            time_iso text,
             no_nodes int,
             no_blocks long,
             no_frontiers long)''')
@@ -45,11 +43,8 @@ def create_dbs():
 
 def add_line(timestamp, no_nodes, no_blocks, no_frontiers):
     c, conn = connect()
-    date = datetime.datetime.fromtimestamp(timestamp).date()
     sql_command = "INSERT INTO monitor VALUES ('"+\
         str(timestamp) + "', '"+\
-        str(date.toordinal()) + "', '"+\
-        date.isoformat() + "', '"+\
         str(no_nodes) + "', '" +\
         str(no_blocks) + "', '"+\
         str(no_frontiers) + "'"+\
@@ -63,7 +58,7 @@ def add_line(timestamp, no_nodes, no_blocks, no_frontiers):
 def get_all_lines():
     c, conn = connect()
 
-    c.execute("SELECT * FROM monitor ORDER BY time_sec ASC")
+    c.execute("SELECT * FROM monitor;")   # ORDER BY time_sec ASC
     ret = c.fetchall()
     close(conn)
 
