@@ -53,7 +53,7 @@ def dump_compressed(timestep):
             endtime = starttime + timestep
         #print(ts, starttime, endtime, ts < endtime)
         if ts < endtime:
-            if int(l['no_nodes'])) > 0 and int(l['no_blocks']) > 0:   # exclude all-0 lines
+            if int(l['no_nodes']) > 0 and int(l['no_blocks']) > 0:   # exclude all-0 lines
                 dp1.add(l['no_nodes'])
                 dp2.add(l['no_blocks'])
                 dp3.add(l['no_frontiers'])
