@@ -44,7 +44,7 @@ def send():
     src_walletid = config["treasury_service.account"][pool_account_id]["walletid"]
     #print("src_account ", src_account, " walletid ", src_walletid)
 
-    max_amount = min(100, float(config["treasury_service.max_amount"]))
+    max_amount = min(500000, float(config["treasury_service.max_amount"]))
     min_amount = max(0.000000001, float(config["treasury_service.min_amount"]))
     resp = sendIntern(src_account, src_walletid, dest_account, amount, unique_id, max_amount, min_amount)
     #print("resp ", resp)
