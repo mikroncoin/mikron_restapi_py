@@ -33,17 +33,23 @@ def createAccountApi():
     postjson = json.loads(postdata.replace("'", '"'))
     #print("postjson ", postjson)
 
+    if ("pool_account_id" not in postjson) or ("pool_account_password" not in postjson):
+        return {"error": "Missing pool account parameters"}
     pool_account_id = postjson["pool_account_id"]
     pool_account_password = postjson["pool_account_password"]
-    return createAccount(pool_account_id, pool_account_password)
+    user_data = ''
+    if "user_data" in postjson:
+        user_data = postjson["user_data"]
 
-def createAccount(pool_account_id, pool_account_password):
+    return createAccount(pool_account_id, pool_account_password, user_data)
+
+def createAccount(pool_account_id, pool_account_password, user_data):
     global config
 
     if (pool_account_id not in config["receiver_service.account"]) or (pool_account_password != config["receiver_service.account"][pool_account_id]["password"]):
         return {"error": "source account not found or wrong password"}
-    #src_account = config["receiver_service.account"][pool_account_id]["account"]
     src_walletid = config["receiver_service.account"][pool_account_id]["walletid"]
+    root_account = config["receiver_service.account"][pool_account_id]["account"]
     #print("walletid ", src_walletid)
 
     resp = node_rpc_helper.doCreateAccount(src_walletid)
@@ -51,11 +57,12 @@ def createAccount(pool_account_id, pool_account_password):
         return resp
     if 'account' not in resp:
         return {"error": "no account in response"}
-
     account = resp['account']
+    account_idx = -1   # this is supposed to be the index of this account in the wallet, but we don't know it
+
     try:
         # OK, put it in DB
-        recv_db.add_new_rec_account(account, pool_account_id, '', src_walletid)
+        recv_db.add_new_rec_account(account, pool_account_id, user_data, root_account, account_idx, src_walletid)
     except:
         print("could not save to DB", account)
 

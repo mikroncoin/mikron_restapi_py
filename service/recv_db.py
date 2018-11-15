@@ -34,6 +34,8 @@ def create_dbs():
             rec_acc text,
             pool_account_id text,
             user_data text,
+            create_root_acc text,
+            acc_idx int,
             create_wallet_id text,
             created_time int,
             status text,
@@ -43,13 +45,26 @@ def create_dbs():
 
     close(conn)
 
-def add_new_rec_account(rec_acc, pool_account_id, user_data, wallet_id):
+def upgrade1():
+    # add columns create_root_acc, acc_idx.  Copy the table for proper column order
+    c, conn = connect()
+    get_logger().info("Upgrading table rec_account")
+    c.execute("ALTER TABLE rec_account RENAME TO rec_account_old;")
+    c.execute("CREATE TABLE rec_account (rec_acc text, pool_account_id text, user_data text, create_root_acc text, acc_idx int, create_wallet_id text, created_time int, status text, updated_time int);")
+    c.execute("INSERT INTO rec_account SELECT rec_acc, pool_account_id, user_data, '', -1, create_wallet_id, created_time, status, updated_time FROM rec_account_old ORDER BY created_time ASC;")
+    c.execute("DROP TABLE rec_account_old;")
+    get_logger().info("Upgrade complete")
+    close(conn)
+
+def add_new_rec_account(rec_acc, pool_account_id, user_data, root_acc, acc_idx, wallet_id):
     c, conn = connect()
     now = str(int(time.time()))
     c.execute("INSERT INTO rec_account VALUES ('" + 
         str(rec_acc) + "', '" +
         str(pool_account_id) + "', '" +
         str(user_data) + "', '" +
+        str(root_acc) + "', '" +
+        str(acc_idx) + "', '" +
         str(wallet_id) + "', '" +
         now + "', 'ACTIVE', '" +
         now + "');")
@@ -63,10 +78,3 @@ def get_all_accounts():
     ret = c.fetchall()
     close(conn)
     return ret
-
-#def list_all_accounts():
-#    accounts = get_all_accounts()
-#    for a in accounts:
-#        print(a['rec_acc'], a['created_time'], a['pool_account_id'], a['status'])
-
-# list_all_accounts()

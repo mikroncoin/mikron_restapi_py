@@ -8,3 +8,4 @@ def reinit_db():
     recv_db.create_dbs()
 
 ### reinit_db()
+### recv_db.upgrade1()
