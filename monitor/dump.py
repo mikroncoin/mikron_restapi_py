@@ -36,7 +36,7 @@ def dump():
         day_ordinal = date_date.toordinal() - 736938     # Sept 1 2018
         date_string = date_date.isoformat()
         hour_string = date_time.time().isoformat()
-        print(ts, sec_ordinal2, day_ordinal, "'" + date_string + "'", "'" + hour_string + "'", \
+        print(ts, sec_ordinal2, day_ordinal, "'" + date_string + "'", "'" + hour_string + "'", "'" + date_string + " " + hour_string + "'", \
                 l['no_nodes'], l['no_blocks'], l['no_frontiers'], sep=', ')
 
 def dump_compressed(timestep):
@@ -70,7 +70,7 @@ def dump_compressed(timestep):
                 day_ordinal = date_date.toordinal() - 736938     # Sept 1 2018
                 date_string = date_date.isoformat()
                 hour_string = date_time.time().isoformat()
-                print(endtime, sec_ordinal2, timestep, day_ordinal, "'" + date_string + "'", "'" + hour_string + "'", \
+                print(endtime, sec_ordinal2, timestep, day_ordinal, "'" + date_string + "'", "'" + hour_string + "'", "'" + date_string + " " + hour_string + "'", \
                     dp1.first, dp1.last, dp1.avg(), dp1.min, dp1.max, \
                     dp2.first, dp2.last, dp2.avg(), dp2.min, dp2.max, \
                     dp3.first, dp3.last, dp3.avg(), dp3.min, dp3.max, \
@@ -96,7 +96,7 @@ def dump_compressed(timestep):
         day_ordinal = date_date.toordinal() - 736938     # Sept 1 2018
         date_string = date_date.isoformat()
         hour_string = date_time.time().isoformat()
-        print(endtime, sec_ordinal2, timestep, day_ordinal, "'" + date_string + "'", "'" + hour_string + "'", \
+        print(endtime, sec_ordinal2, timestep, day_ordinal, "'" + date_string + "'", "'" + hour_string + "'", "'" + date_string + " " + hour_string + "'", \
                 dp1.first, dp1.last, dp1.avg(), dp1.min, dp1.max, \
                 dp2.first, dp2.last, dp2.avg(), dp2.min, dp2.max, \
                 dp3.first, dp3.last, dp3.avg(), dp3.min, dp3.max, \
