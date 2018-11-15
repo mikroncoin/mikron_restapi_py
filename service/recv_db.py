@@ -78,3 +78,10 @@ def get_all_accounts():
     ret = c.fetchall()
     close(conn)
     return ret
+
+def get_account(account):
+    c, conn = connect()
+    c.execute("SELECT * FROM rec_account WHERE rec_acc='" + str(account) + "';")
+    ret = c.fetchall()
+    close(conn)
+    return ret

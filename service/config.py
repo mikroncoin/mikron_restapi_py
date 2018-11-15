@@ -69,5 +69,7 @@ def readConfig():
                 config['receiver_service.account'][account]['account'] = tmpconfig['receiver_service'][acc_pref+'account']
             if acc_pref+'receiver_webhook' in tmpconfig['receiver_service']:
                 config['receiver_service.account'][account]['receiver_webhook'] = tmpconfig['receiver_service'][acc_pref+'receiver_webhook']
+            if acc_pref+'auto_forward_to' in tmpconfig['receiver_service']:
+                config['receiver_service.account'][account]['auto_forward_to'] = tmpconfig['receiver_service'][acc_pref+'auto_forward_to']
 
     return config
