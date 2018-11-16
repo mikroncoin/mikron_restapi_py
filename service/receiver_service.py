@@ -98,14 +98,13 @@ def rpcCallback():
     except:
         print('Error looking up in DB')
     if (len(pool_account_id) <= 0) or (pool_account_id not in config['receiver_service.account']):
-        print('Could not match account to a configured receiver account', account)
-        # call into all webhooks anyways
-        invokeWebhookForPoolAccount('', account)
+        print('Could not match account to a configured receiver account!', account)
+        # DO NOT call into any webhooks...     # invokeWebhookForPoolAccount('', account)
     else:
         # pool account is known
         # check auto-forward
-        handleAutoForward(account, pool_account_id, postjson)
         invokeWebhookForPoolAccount(pool_account_id, account)
+        handleAutoForward(account, pool_account_id, postjson)
     return "ok"
     
 # Call into the hook of a partner site, URL of the form 'https://mikron.io/webhook/{account}'

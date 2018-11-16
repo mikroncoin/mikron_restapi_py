@@ -54,7 +54,7 @@ def getAccountBalance(account_id):
 # Example: curl http://localhost:8090/account/history/mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs
 @route('/account/history/<account_id>', method='GET')
 def getAccountHistory(account_id):
-    history = node_rpc_helper.getAccountHistory(account_id, 20)
+    history = node_rpc_helper.getAccountHistory(account_id, 100)
     setHeaders()
     return history
 
