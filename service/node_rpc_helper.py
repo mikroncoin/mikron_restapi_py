@@ -169,6 +169,17 @@ def doCreateAccount(src_walletid):
     except:
         return {"error": "exception"}
 
+def doAccountList(wallet_id):
+    global rai
+    try:
+        send_params = {"wallet": wallet_id}
+        #print("send_params", send_params)
+        resp = rai.account_list(send_params)
+        #print(resp)
+        return resp
+    except:
+        return {"error": "exception"}
+
 config = config.readConfig()
 server = '?'
 if 'rpc.baseurl' in config:
