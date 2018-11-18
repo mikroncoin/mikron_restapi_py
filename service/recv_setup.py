@@ -42,12 +42,12 @@ def setup_check():
     count_in_both = 0
     count_in_db_only = 0
     for a in in_db:
-        if a in in_node:
+        if (a in in_node) and (in_db[a]["pool"] == in_node[a]["pool"]):
             # in both, OK
             count_in_both = count_in_both + 1
         else:
             # in DB, but not in node!
-            print("Error: acc", a, "is in DB but not in Node!")
+            print("Error: acc", a, in_db[a]["pool"], "is in DB but not in Node!")
             count_in_db_only = count_in_db_only + 1
     print("- ", count_in_both, "in both DB and Node")
     print("- ", count_in_db_only, "in DB only")
@@ -56,7 +56,7 @@ def setup_check():
     for a in in_node:
         if a not in in_db:
             # in Node, but not in DB!
-            print("Warning: acc", a, "is in Node but not in DB!")
+            print("Error: acc", a, in_node[a]["pool"], "is in Node but not in DB!")
             count_in_node_only = count_in_node_only + 1
     print("- ", count_in_node_only, "in Node only")
     ret_msg = \
