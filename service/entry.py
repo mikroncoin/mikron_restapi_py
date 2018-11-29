@@ -5,6 +5,7 @@ import restapi_service
 import treasury_service
 import receiver_service
 import explorer_hoster
+import recv_setup
 
 from bottle import run
 
@@ -15,6 +16,9 @@ from bottle import run
 
 # Entry, startup
 config = config.readConfig()
+
+# Recevier status, initial check in background
+recv_setup.setup_check_async()
 
 print('listen.host', config['listen.host'])
 print('listen.port', config['listen.port'])

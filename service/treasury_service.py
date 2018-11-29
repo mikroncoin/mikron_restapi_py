@@ -62,9 +62,10 @@ def sendIntern(src_account, src_walletid, dest_account, amount, unique_id, max_a
         return {"error": "Amount too small (min " + str(min_amount) + ")"}
     # debug: retrieve balance
     src_orig_balance = node_rpc_helper.getAccountBalance(src_account)
-    print("orig src balance", src_orig_balance)
+    print("sendIntern: orig src balance", src_orig_balance)
 
     resp = node_rpc_helper.doSend(src_walletid, src_account, dest_account, amount, unique_id)
+    print("sendIntern: send complete, amount ", amount, "dest", dest_account)
     if 'error' in resp:
         return resp
     if 'block' not in resp:

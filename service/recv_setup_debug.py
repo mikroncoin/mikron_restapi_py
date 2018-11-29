@@ -9,5 +9,6 @@ def list_all_accounts():
         print(a['rec_acc'], a['pool_account_id'], a['user_data'], a['create_root_acc'], a['acc_idx'], a['create_wallet_id'], a['created_time'], a['status'], a['updated_time'])
 
 config = config.readConfig()
-recv_setup.setup_check()
+msg = recv_setup.setup_check(config)
+print("setup_check", msg)
 #list_all_accounts()

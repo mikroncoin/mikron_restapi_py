@@ -3,6 +3,7 @@ import account_helper
 import node_rpc_helper
 import recv_db
 import node_rpc_helper
+import recv_setup
 
 import os
 import json
@@ -43,7 +44,9 @@ def createAccountApi():
     if "user_data" in postjson:
         user_data = postjson["user_data"]
 
-    return createAccount(pool_account_id, pool_account_password, user_data)
+    res = createAccount(pool_account_id, pool_account_password, user_data)
+    recv_setup.setup_check_async()
+    return res
 
 def createAccount(pool_account_id, pool_account_password, user_data):
     global config
@@ -152,5 +155,10 @@ def handleAutoForward(account, pool_account_id, postjson):
 def invokeInBg(url):
     response = requests.get(url)
     print(response.url, response.text[:200])
+
+@route('/receiver/get_status', method='GET')
+def get_status():
+    setHeaders()
+    return {"status": recv_setup.get_setup_check_background()}
 
 config = config.readConfig()

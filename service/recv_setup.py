@@ -2,9 +2,40 @@ import config
 import recv_db
 import node_rpc_helper
 
-# Check the receiver accounts; compare accounts in the node wallets and in the DB
-def setup_check():
+import threading
+from time import sleep, time
+
+setup_check_background_result = {"msg": "(uninitialized)"}
+config = config.readConfig()
+last_check_time = time() - 100
+
+def get_setup_check_background():
+    global setup_check_background_result
+    return setup_check_background_result
+
+def setup_check_async():
+    bg_thread = threading.Thread(target = setup_check_sync)
+    bg_thread.start()    
+
+def setup_check_sync():
+    global setup_check_background_result
     global config
+    global last_check_time
+    now = time()
+    age = now - last_check_time
+    if (age < 300):
+        setup_check_background_result["msg"] = "(status check skipped " + str(int(age)) + ")"
+    else:
+        setup_check_background_result["msg"] = "(status check scheduled)"
+        sleep(5)
+        last_check_time = now
+        setup_check_background_result["msg"] = "(status check executing)"
+        status = setup_check(config)
+        #print("status", status)
+        setup_check_background_result = status
+
+# Check the receiver accounts; compare accounts in the node wallets and in the DB
+def setup_check(config):
     print("Receiving accounts:")
     # in DB
     in_db = {}
@@ -59,14 +90,16 @@ def setup_check():
             print("Error: acc", a, in_node[a]["pool"], "is in Node but not in DB!")
             count_in_node_only = count_in_node_only + 1
     print("- ", count_in_node_only, "in Node only")
-    ret_msg = \
-        str(len(in_db)) + " in_db " +\
-        str(len(in_node)) + " in_node " +\
-        str(count_in_both) + " in_both " +\
-        str(count_in_db_only) + " in_db_only " +\
-        str(count_in_node_only) + " in_node_only"
-    print(ret_msg)
-    return ret_msg
+    status = {
+        "in_db": len(in_db),
+        "in_node": len(in_node),
+        "in_both": count_in_both,
+        "in_db_only": count_in_db_only,
+        "in_node_only": count_in_node_only
+    }
+    print(status)
+    return status
 
-config = config.readConfig()
-setup_check()
+#config = config.readConfig()
+#msg = setup_check(config)
+#print("setup_check", msg)
