@@ -7,7 +7,7 @@ from time import sleep, time
 
 setup_check_background_result = {"msg": "(uninitialized)"}
 config = config.readConfig()
-last_check_time = time() - 100
+last_check_time = time() - 10000
 
 def get_setup_check_background():
     global setup_check_background_result
