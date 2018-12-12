@@ -6,6 +6,7 @@ import os
 import json
 from bottle import post, request, response, get, route, static_file
 from threading import Thread
+import requests
 
 def setHeaders():
     response.content_type = 'application/json'
@@ -36,7 +37,10 @@ def send():
     dest_account = postjson["dest_account"]
     amount = postjson["amount"]
     unique_id = postjson["unique_id"]
-
+    callback = ''
+    if 'callback' in postjson:
+        callback = postjson['callback']
+    
     #print("dest_account ", dest_account, " amount ", amount, " id ", unique_id)
     if (pool_account_id not in config["treasury_service.account"]) or (pool_account_password != config["treasury_service.account"][pool_account_id]["password"]):
         return {"error": "source account not found or wrong password"}
@@ -46,9 +50,19 @@ def send():
 
     max_amount = min(500000, float(config["treasury_service.max_amount"]))
     min_amount = max(0.000000001, float(config["treasury_service.min_amount"]))
-    resp = sendIntern(src_account, src_walletid, dest_account, amount, unique_id, max_amount, min_amount)
-    #print("resp ", resp)
-    return resp
+    if callback == '':
+        # no callback, sync
+        resp = sendIntern(src_account, src_walletid, dest_account, amount, unique_id, max_amount, min_amount)
+        #print("resp ", resp)
+        return resp
+    else:
+        # callback, do send asynchronously, with callback at the end
+        sendAsync(src_account, src_walletid, dest_account, amount, unique_id, max_amount, min_amount, callback)
+        return {
+            'id': unique_id, 
+            # block_hash is not yet available
+            'callback': callback
+        }
 
 def sendIntern(src_account, src_walletid, dest_account, amount, unique_id, max_amount, min_amount):
     amountFloat = 0
@@ -75,5 +89,48 @@ def sendIntern(src_account, src_walletid, dest_account, amount, unique_id, max_a
         "amount": amount,
         "block_hash": resp['block']
     }
+
+def sendInternWithCallback(src_account, src_walletid, dest_account, amount, unique_id, max_amount, min_amount, callback):
+    result = sendIntern(src_account, src_walletid, dest_account, amount, unique_id, max_amount, min_amount)
+    invokeSendCallback(callback, result)
+
+def invokeSendCallback(callback, result):
+    print('Invoking send callback', callback, 'with result data', result)
+    postdata = json.dumps(result)
+    response = requests.post(callback, data=postdata)
+    print(response.url, response.text[:200])
+
+def sendAsync(src_account, src_walletid, dest_account, amount, unique_id, max_amount, min_amount, callback):
+    #print("Doing send in background")
+    t = Thread(target=sendInternWithCallback, args=(src_account, src_walletid, dest_account, amount, unique_id, max_amount, min_amount, callback))
+    t.start()
+
+# Sample send callback, used for testing
+#  Example: curl -d "{'id': 'FaucetPool', 'amount': 'some_password', 'block_hash': 'mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs', 'amount': '1', 'unique_id': '1234500017'}" http://localhost:8090/treasury/sample-send-callback
+@route('/treasury/sample-send-callback', method='POST')
+def sample_send_callback():
+    global config
+    setHeaders()
+    if config['treasury_service.enabled'] != 'true':
+        return {"error": "service not enabled"}
+
+    postdata = request.body.read().decode('utf8')
+    #print("postdata ", postdata)
+    postjson = json.loads(postdata.replace("'", '"'))
+    #print("postjson ", postjson)
+
+    if 'error' in postjson:
+        print('Send callback', 'ERROR', postjson['error'])
+    else:
+        id = ''
+        if 'id' in postjson:
+            id = postjson['id']
+        amount = 0
+        if 'amount' in postjson:
+            amount = postjson['amount']
+        block_hash = ''
+        if 'block_hash' in postjson:
+            block_hash = postjson['block_hash']
+        print('Send callback', 'id', id, 'amount', amount, 'block_hash', block_hash)
 
 config = config.readConfig()

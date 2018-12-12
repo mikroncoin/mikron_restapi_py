@@ -63,7 +63,6 @@ function getAccHisRespHandler() {
 var sendCounter = 0;
 
 function doSend() {
-    document.getElementById('send_res_hash').value = 'Send in progress...';
     pool_account_id = document.getElementById('send_acc_id').value;
     pool_account_password = document.getElementById('send_acc_pass').value;
     dest_account = document.getElementById('send_dest_account').value;
@@ -73,12 +72,19 @@ function doSend() {
     unique_id = "0" + String(currentdate.getMonth()) + String(currentdate.getDay()) + String(currentdate.getHours()) + String(currentdate.getMinutes()) + String(currentdate.getSeconds()) + String(currentdate.getMilliseconds()) +
         "_" + String(sendCounter) // + "_" + dest_account;
     //console.log("unique_id: ", unique_id);
+    send_callback = document.getElementById('send_callback').value;
+    if (isNullOrEmpty(send_callback)) {
+        document.getElementById('send_res_hash').value = 'Send in progress (sync) ...';
+    } else {
+        document.getElementById('send_res_hash').value = 'Send is async, result in ' + send_callback;
+    }
     req = {
         "pool_account_id": pool_account_id,
         "pool_account_password": pool_account_password,
         "dest_account": dest_account,
         "amount": amount, 
-        "unique_id": unique_id
+        "unique_id": unique_id,
+        "callback": send_callback,
     }
     reqStr = JSON.stringify(req)
     console.log("req: " + reqStr);
@@ -98,13 +104,13 @@ function sendRespHandler() {
     if (!isNullOrEmpty(resp['block_hash'])) {
         block_hash = resp['block_hash'];
         document.getElementById('send_res_hash').value = block_hash;
-        setDebug("Send successful, hash: " + block_hash);
+        setDebug("Sync send successful, hash: " + block_hash);
+    } else if (!isNullOrEmpty(resp['callback'])) {
+        setDebug("Send callback: " + resp['callback']);
+    } else if (!isNullOrEmpty(resp['error'])) {
+        setDebug("Error: " + resp['error']);
     } else {
-        if (!isNullOrEmpty(resp['error'])) {
-            setDebug("Error: " + resp['error']);
-        } else {
-            setDebug("Error: " + this.response);
-        }
+        setDebug("Error: " + this.response);
     }
 }
 
@@ -270,10 +276,21 @@ function setDebug(data) {
                     </tr>
                     <tr>
                         <td>
+                            Callback (empty for sync):
+                        </td>
+                        <td>
+                            <input id="send_callback" size="80" value=""></input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
                             Result block hash:
                         </td>
                         <td>
                             <input id="send_res_hash" size="80" value="<block hash>" readonly="true"></input>
+                        </td>
+                        <td>
+                            e.g. http://localhost:8090/treasury/sample-send-callback
                         </td>
                     </tr>
                     <tr>
