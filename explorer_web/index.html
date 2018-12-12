@@ -1,13 +1,16 @@
 <html>
     <head>
         <script>
+// REST service base URL, such as 'http://server2.mikron.io:8080'            
+var serviceBaseUrl = "{{SERVICE_URL_PLACEHOLDER}}";
+
 function refresh() {
     document.getElementById('timestamp').innerText = Date.now();
-    document.getElementById('nodes_count').innerText = '?';
+    //document.getElementById('nodes_count').innerText = '?';
     callGetUrl('/peers/count', (text) => document.getElementById('nodes_count').innerText = 1 + Number(text));
-    document.getElementById('block_count').innerText = '?';
+    //document.getElementById('block_count').innerText = '?';
     callGetUrl('/blocks/count', (text) => document.getElementById('block_count').innerText = text);
-    document.getElementById('frontier_count').innerText = '?';
+    //document.getElementById('frontier_count').innerText = '?';
     callGetUrl('/frontiers/count', (text) => document.getElementById('frontier_count').innerText = text);
 }
 
@@ -27,7 +30,35 @@ function callGetUrl(url, callback) {
             }
         }
     };
+    http.open("GET", url, true);
+    http.send();
+}
 
+function search_account() {
+    var account = document.getElementById("in_account").value;
+    console.log(account)
+    var url = serviceBaseUrl + "/account/balance/" + account;
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function() {
+        if (http.readyState == XMLHttpRequest.DONE) {
+            if (http.status == 200) {
+                if (http.responseText.toLowerCase().indexOf('error') >= 0) {
+                    console.log("Error: " + http.responseText);
+                } else {
+                    // account exists, jump to it
+                    url_account = "/explorer/account/" + account;
+                    console.log(url_account);
+                    document.location.href = url_account;
+                }
+            }
+            else if (http.status == 400) {
+                console.log('There was an error 400 ' + url);
+            }
+            else {
+                console.log('Something else other than 200 was returned ' + http.status + ' ' + url);
+            }
+        }
+    };
     http.open("GET", url, true);
     http.send();
 }
@@ -37,19 +68,25 @@ function callGetUrl(url, callback) {
         <div>
             <h1>Mikron Explorer</h1>
             <div>
-                Number of nodes:  <label id='nodes_count'>?</label>
+                Number of nodes: <b><label id='nodes_count'>?</label></b>
             </div>
             <div>
-                Number of blocks:  <label id='block_count'>?</label>
+                Number of blocks: <b><label id='block_count'>?</label></b>
             </div>
             <div>
-                Number of frontiers:  <label id='frontier_count'>?</label>
+                Number of frontiers: <b><label id='frontier_count'>?</label></b>
             </div>
             <div>
-                Current time (utc, unix):  <label id='timestamp'>?</label>
+                Current time (utc, unix): <label id='timestamp'>?</label>
             </div>
             <div>
                 <button onclick='refresh()'>Refresh</button>
+            </div>
+            <div>
+                Search for Account: 
+                </p>
+                <input id="in_account" type="text" size="80" value="(enter account)"/>
+                <button onclick="search_account()">Search</button>
             </div>
         </div>
     </body>

@@ -1,0 +1,137 @@
+<html>
+    <head>
+        <meta charset="UTF-8"/>
+        <script>
+// REST service base URL, such as 'http://server2.mikron.io:8080'            
+var serviceBaseUrl = "{{SERVICE_URL_PLACEHOLDER}}";
+var account = "{{ACCOUNT_PLACEHOLDER}}";
+
+function load() {
+    document.getElementById("lb_acc").innerText = account;
+    document.getElementById("lb_acc_short").innerText = account.substring(0, 15);
+    document.getElementById("lb_balance").innerText = "?";
+    document.getElementById("d_transactions").innerHTML = "<table>" + historyHeader() + "<tr><td colspan='6'>(loading history)</td></tr></table>"
+
+    callGetUrl(serviceBaseUrl + "/account/balance/" + account, (text) => document.getElementById('lb_balance').innerText = text);
+    getHistory(account);
+
+    load_header();
+}
+
+function load_header() {
+    //document.getElementById('nodes_count').innerText = '?';
+    callGetUrl('/peers/count', (text) => document.getElementById('nodes_count').innerText = 1 + Number(text));
+    //document.getElementById('block_count').innerText = '?';
+    callGetUrl('/blocks/count', (text) => document.getElementById('block_count').innerText = text);
+    //document.getElementById('frontier_count').innerText = '?';
+    callGetUrl('/frontiers/count', (text) => document.getElementById('frontier_count').innerText = text);
+}
+
+function callGetUrl(url, callback) {
+    //console.log('url ' + url);
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function() {
+        if (http.readyState == XMLHttpRequest.DONE) {
+            if (http.status == 200) {
+                callback(http.responseText);
+            }
+            else if (http.status == 400) {
+                console.log('There was an error 400 ' + url);
+            }
+            else {
+                console.log('Something else other than 200 was returned ' + http.status + ' ' + url);
+            }
+        }
+    };
+    http.open("GET", url, true);
+    http.send();
+}
+
+function getHistory(account) {
+    var url = serviceBaseUrl + "/account/history/" + account;
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function() {
+        if (http.readyState == XMLHttpRequest.DONE) {
+            if (http.status == 200) {
+                loadHistory(http.response)
+            }
+            else if (http.status == 400) {
+                console.log('There was an error 400 ' + url);
+            }
+            else {
+                console.log('Something else other than 200 was returned ' + http.status + ' ' + url);
+            }
+        }
+    };
+    http.open("GET", url, true);
+    http.send();
+}
+
+function loadHistoryRow(history_row) {
+    var hist_html = "<tr>";
+    var type = history_row['type'];
+    hist_html += "<td>" + type + "</td>";
+    var block_time_unix = parseInt(history_row['block_time']);
+    var time = new Date(block_time_unix * 1000);
+    var time_string = time.toLocaleString();
+    hist_html += "<td>" + time_string + "</td>";
+    hist_html += "<td><b>" + (type == "send" ? "-" : "+") + history_row['amount'] + "</b></td>";
+    hist_html += "<td>" + history_row['balance'] + "</td>";
+    party = history_row['account'];
+    hist_html += "<td><a href='/explorer/account/" + party + "'>" + party.substring(0, 15) + "</a></td>";
+    hist_html += "<td>" + history_row['hash'].substring(0, 10) + "</td>";
+    hist_html += "</tr>";
+    return hist_html;
+}
+
+function historyHeader() {
+    return "<tr><td><i>type</i></td><td><i>date</i></td><td><i>amount (MIK)</i></td><td><i>balance (MIK)</i></td><td><i>from/to</i></td><td><i>block hash</i></td></tr>";
+}
+
+function loadHistory(history_raw) {
+    hist_json = JSON.parse(history_raw);
+    //console.log(hist_json);
+    if ('history' in hist_json) {
+        var hist_html = "<table>";
+        // header
+        hist_html += historyHeader();
+        if (hist_json['history'].length == 0) {
+            hist_html += "<tr><td colspan='6'>No transactions</td></tr>";
+        } else {
+            hist_json['history'].forEach(row => {
+                hist_html += loadHistoryRow(row);
+            });
+        }
+        hist_html += "</table>";
+        document.getElementById("d_transactions").innerHTML = hist_html;
+    } else {
+        document.getElementById("d_transactions").innerHTML = "<table> " + historyHeader() + "<tr><td colspan='6'>Error loading</td></tr></table>";
+    }
+}
+        </script>
+    </head>
+    <body onload="load()">
+        <div>
+            <a href="/explorer/">Mikron Explorer</a>
+            |
+            blocks: <b><label id='block_count'></label></b>
+            frontiers: <b><label id='frontier_count'></label></b>
+            nodes: <b><label id='nodes_count'></label></b>
+        </div>
+        <div>
+            <h2>Account <label id="lb_acc_short"></label></h2>
+            Account: <label id="lb_acc"></label>
+        </div>
+        <div>
+            Balance: <b><label id="lb_balance"></label></b>
+        </div>
+        <div>
+            Latest Transactions:
+            <div id="d_transactions">
+            </div>
+        </div>
+        <div>
+            <button onclick="load()">Refresh</button>
+        </div>
+</body>
+</html>
