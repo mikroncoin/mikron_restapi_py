@@ -2,8 +2,8 @@
     <head>
         <meta charset="UTF-8"/>
         <script>
-// REST service base URL, such as 'http://server2.mikron.io:8080'            
-var serviceBaseUrl = "{{SERVICE_URL_PLACEHOLDER}}";
+//// REST service base URL, such as 'http://server2.mikron.io:8080'
+//var serviceBaseUrl = "{{SERVICE_URL_PLACEHOLDER}}";
 var account = "{{ACCOUNT_PLACEHOLDER}}";
 
 function load() {
@@ -12,7 +12,7 @@ function load() {
     document.getElementById("lb_balance").innerText = "?";
     document.getElementById("d_transactions").innerHTML = "<table>" + historyHeader() + "<tr><td colspan='6'>(loading history)</td></tr></table>"
 
-    callGetUrl(serviceBaseUrl + "/account/balance/" + account, (text) => document.getElementById('lb_balance').innerText = text);
+    callGetUrl(/*serviceBaseUrl + */"/account/balance/" + account, (text) => document.getElementById('lb_balance').innerText = text);
     getHistory(account);
 
     load_header();
@@ -48,7 +48,7 @@ function callGetUrl(url, callback) {
 }
 
 function getHistory(account) {
-    var url = serviceBaseUrl + "/account/history/" + account;
+    var url = /*serviceBaseUrl + */"/account/history/" + account;
     var http = new XMLHttpRequest();
     http.onreadystatechange = function() {
         if (http.readyState == XMLHttpRequest.DONE) {

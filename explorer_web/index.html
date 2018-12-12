@@ -1,8 +1,8 @@
 <html>
     <head>
         <script>
-// REST service base URL, such as 'http://server2.mikron.io:8080'            
-var serviceBaseUrl = "{{SERVICE_URL_PLACEHOLDER}}";
+//// REST service base URL, such as 'http://server2.mikron.io:8080'
+//var serviceBaseUrl = "{{SERVICE_URL_PLACEHOLDER}}";
 
 function refresh() {
     document.getElementById('timestamp').innerText = Date.now();
@@ -37,7 +37,7 @@ function callGetUrl(url, callback) {
 function search_account() {
     var account = document.getElementById("in_account").value;
     console.log(account)
-    var url = serviceBaseUrl + "/account/balance/" + account;
+    var url = /*serviceBaseUrl + */"/account/balance/" + account;
     var http = new XMLHttpRequest();
     http.onreadystatechange = function() {
         if (http.readyState == XMLHttpRequest.DONE) {
