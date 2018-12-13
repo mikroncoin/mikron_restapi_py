@@ -1,0 +1,97 @@
+import db
+
+import logging
+import time
+import threading
+import requests
+import json
+
+# monitor (retrieve and save) nodes
+"""job delay in sec"""
+delay = 120
+obs_1_srv = "http://server2.mikron.io:8226"
+obs_1_firewall = 0
+logging.basicConfig(level=logging.INFO)
+
+def get_logger():
+    """ Get named logger """
+    return logging.getLogger(__name__)
+
+def parse_endpoint(endpoint):
+    if ':' not in endpoint:
+        # no port
+        return (endpoint, 0)
+    if ('[' not in endpoint) and (']' not in endpoint):
+        # simple host:port
+        colon_idx = endpoint.rfind(':')
+        return (endpoint[:colon_idx], endpoint[colon_idx+1:])
+    # both [] and :, take last 
+    colon_idx = endpoint.rfind(':')
+    return (endpoint[:colon_idx], endpoint[colon_idx+1:])
+
+def nodes_one():
+    session = requests.Session()
+    save_nodes(session, obs_1_srv, obs_1_firewall)
+
+def save_node(time, obs_srv, obs_firewall, host, port, account):
+    db.save_node(time, obs_srv, obs_firewall, host, port, account)
+    #print("Saved node:", time, obs_srv, obs_firewall, host, port, account, ".")
+
+def save_nodes_int(session, obs_srv, obs_firewall):
+    now = time.time()
+    try:
+        url = obs_srv + "/peers/list"
+        response = session.get(url)
+        if response.status_code != 200:
+            print("ERROR", "accessing node list", response.status_code, response.text)
+            return 0
+        #print(response.text)
+        peers_json = json.loads(response.text)
+        #print(peers_json)
+        if 'peer_list' not in peers_json:
+            return 0
+        # TODO
+        cnt = 0
+        for node in peers_json['peer_list']:
+            #print(elem)
+            if 'endpoint' in node:
+                (host, port) = parse_endpoint(node['endpoint'])
+                node_id = ''
+                if 'node_id' in node:
+                    node_id = node['node_id']
+                save_node(now, obs_srv, obs_firewall, host, port, node_id)
+                cnt = cnt + 1
+        return cnt
+    except Exception as e:
+        print("ERROR", "accessing node list", "exception", e)
+        return 0
+    return 0
+
+def save_nodes(session, obs_srv, obs_firewall):
+    no_nodes_saved = save_nodes_int(session, obs_srv, obs_firewall)
+    if no_nodes_saved == 0:
+        print("accessing node list")
+    else:
+        print("Nodes saved", no_nodes_saved)
+
+def start_job():
+    now = int(time.time())
+    next_update = now + 1
+    while getattr(threading.currentThread(), "do_run", True):
+        now = int(time.time())
+        if now >= next_update:
+            nodes_one()
+            next_update = int((next_update + delay) / delay) * delay
+            #get_logger().info("Next check in " + str(next_update - now) + " sec");
+        to_sleep = max((next_update - now) / 2 - 1, 0.5)
+        #get_logger().info("Sleep for " + str(to_sleep) + " sec");
+        time.sleep(to_sleep)
+
+bg_thread = None
+def start_background():
+    bg_thread = threading.Thread(target=start_job)
+    bg_thread.start()
+
+def stop_background():
+    bg_thread.do_run = False
+    bg_thread.join()

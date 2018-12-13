@@ -5,6 +5,7 @@ import time
 import threading
 import requests
 
+# monitor (retrieve and save) basic network parameters periodically
 """job delay in sec"""
 delay = 300
 baseUrl = "http://server2.mikron.io:8226/"

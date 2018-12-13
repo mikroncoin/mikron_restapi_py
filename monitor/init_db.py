@@ -2,10 +2,10 @@ import os
 import db
 
 def reinit_db():
-    if os.path.exists(db.get_db_name()):
-        os.remove(db.get_db_name())
+    if os.path.exists(db.get_db_name_monitor()):
+        os.remove(db.get_db_name_monitor())
 
-    db.create_dbs()
+    db.create_db_monitor()
 
 def upgrade1():
     # remove columns time_day_ordinal and time_iso from table monitor, they are generated later during dump
