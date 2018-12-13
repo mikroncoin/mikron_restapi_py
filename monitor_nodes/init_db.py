@@ -7,4 +7,4 @@ def reinit_db():
 
     db.create_db_noderaw()
 
-reinit_db()
+### reinit_db()
