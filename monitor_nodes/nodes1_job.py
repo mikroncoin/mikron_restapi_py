@@ -1,4 +1,5 @@
 import db
+import balance
 
 import logging
 import time
@@ -33,8 +34,8 @@ def nodes_one():
     session = requests.Session()
     save_nodes(session, obs_1_srv, obs_1_firewall)
 
-def save_node(time, obs_srv, obs_firewall, host, port, account):
-    db.save_node(time, obs_srv, obs_firewall, host, port, account)
+def save_node(time, obs_srv, obs_firewall, host, port, account, balance):
+    db.save_node(time, obs_srv, obs_firewall, host, port, account, balance)
     #print("Saved node:", time, obs_srv, obs_firewall, host, port, account, ".")
 
 def save_nodes_int(session, obs_srv, obs_firewall):
@@ -50,16 +51,19 @@ def save_nodes_int(session, obs_srv, obs_firewall):
         #print(peers_json)
         if 'peer_list' not in peers_json:
             return 0
-        # TODO
+        # process peer list
         cnt = 0
         for node in peers_json['peer_list']:
             #print(elem)
             if 'endpoint' in node:
                 (host, port) = parse_endpoint(node['endpoint'])
                 node_id = ''
+                balan = 0
                 if 'node_id' in node:
                     node_id = node['node_id']
-                save_node(now, obs_srv, obs_firewall, host, port, node_id)
+                    balan = balance.get_account_balance_cached(now, session, obs_srv, node_id)
+                    #print('balan', balan)
+                save_node(now, obs_srv, obs_firewall, host, port, node_id, balan)
                 cnt = cnt + 1
         return cnt
     except Exception as e:
@@ -68,11 +72,13 @@ def save_nodes_int(session, obs_srv, obs_firewall):
     return 0
 
 def save_nodes(session, obs_srv, obs_firewall):
+    now = time.time()
+    get_logger().info('Retrieving node list, srv ' + str(obs_srv))
     no_nodes_saved = save_nodes_int(session, obs_srv, obs_firewall)
     if no_nodes_saved == 0:
-        print("accessing node list")
+        get_logger().error('Error retrieving node list, no nodes could be retrieved')
     else:
-        print("Nodes saved", no_nodes_saved)
+        get_logger().info('Nodes saved, cnt ' + str(no_nodes_saved))
 
 def start_job():
     now = int(time.time())

@@ -30,23 +30,25 @@ def close(conn):
 
 def create_db_noderaw():
     c, conn = connect(get_db_name_noderaw())
-    #        obs_srv text,       # observer service
-    #        obs_firewall int,   # observer service behind firewall (1) or not (0)
-    #        ep_ip text,         # node endpoint IP
-    #        ep_port text,       # node endpoint port
-    #        ep_account          # node ID account of the node
+    #        obs_srv text,      # observer service
+    #        obs_firewall int,  # observer service behind firewall (1) or not (0)
+    #        ip text,           # node endpoint IP
+    #        port text,         # node endpoint port
+    #        account text       # node ID account of the node
+    #        balance text       # current balance of the node ID account (cached, within 1 hour)
     c.execute('''CREATE TABLE noderaw
             (time_sec long,
             obs_srv text,
             obs_firewall int,
-            ep_ip text,
-            ep_port text,
-            ep_account
+            ip text,
+            port text,
+            account text,
+            balance text
             )''')
     get_logger().info("DB table noderaw created")
     close(conn)
 
-def save_node(time, obs_srv, obs_firewall, host, port, account):
+def save_node(time, obs_srv, obs_firewall, host, port, account, balance):
     c, conn = connect(get_db_name_noderaw())
     sql_command = "INSERT INTO noderaw VALUES ('"+\
         str(time) + "', '"+\
@@ -54,7 +56,8 @@ def save_node(time, obs_srv, obs_firewall, host, port, account):
         str(obs_firewall) + "', '"+\
         str(host) + "', '"+\
         str(port) + "', '"+\
-        str(account) + "'"+\
+        str(account) + "', '"+\
+        str(balance) + "'"+\
         ");"
     #print(sql_command)
     c.execute(sql_command)
