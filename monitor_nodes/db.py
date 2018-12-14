@@ -72,3 +72,29 @@ def get_all_nodes_unordered():
     ret = c.fetchall()
     close(conn)
     return ret
+
+# Get the min and max of the observed times
+def get_min_max_time():
+    c, conn = connect(get_db_name_noderaw())
+    c.execute("SELECT MIN(time_sec) AS min, MAX(time_sec) AS max FROM noderaw;")
+    ret = c.fetchall()
+    close(conn)
+    return ret
+
+# get entries, filtered by a time range
+def get_nodes_filter_time(start, end):
+    c, conn = connect(get_db_name_noderaw())
+    c.execute("SELECT * FROM noderaw WHERE time_sec >= " + str(start) + " AND time_sec < " + str(end) + ";")
+    ret = c.fetchall()
+    close(conn)
+    return ret
+
+# get entries aggregate, for a time range.  Doesn't work
+def get_nodes_aggregate_time(start, end):
+    c, conn = connect(get_db_name_noderaw())
+    #c.execute("SELECT ip, COUNT(1) AS count FROM noderaw GROUP BY ip;")
+    c.execute("SELECT ip, COUNT(1) AS count FROM noderaw WHERE time_sec >= " + str(start) + " AND time_sec < " + str(end) + " GROUP BY ip;")
+    ret = c.fetchall()
+    close(conn)
+    return ret
+    
