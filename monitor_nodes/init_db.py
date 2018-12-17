@@ -15,4 +15,4 @@ def upgrade1():
     db.create_db_nodedaily()
 
 ### reinit_db()
-upgrade1()
+### upgrade1()
