@@ -13,6 +13,9 @@ def get_logger():
 def get_db_name_noderaw():
     return 'noderaw_db.db'
 
+def get_db_name_nodecompute():
+    return 'nodecompute_db.db'
+
 def dict_factory(cursor, row):
     d = {}
     for idx, col in enumerate(cursor.description):
@@ -48,6 +51,36 @@ def create_db_noderaw():
     get_logger().info("DB table noderaw created")
     close(conn)
 
+def create_db_nodeperiod():
+    c, conn = connect(get_db_name_nodecompute())
+    c.execute('''CREATE TABLE nodeperiod
+            (time_start long,
+            time_end long,
+            count_tot int,
+            ip text,
+            port text,
+            count int,
+            account text,
+            avg_bal text
+            )''')
+    get_logger().info("DB table nodeperiod created")
+    close(conn)
+
+def create_db_nodedaily():
+    c, conn = connect(get_db_name_nodecompute())
+    c.execute('''CREATE TABLE nodedaily
+            (time_start long,
+            time_end long,
+            ip text,
+            port text,
+            count_pos int,
+            count_neg int,
+            account text,
+            avg_bal text
+            )''')
+    get_logger().info("DB table nodedaily created")
+    close(conn)
+
 def save_node(time, obs_srv, obs_firewall, host, port, account, balance):
     c, conn = connect(get_db_name_noderaw())
     sql_command = "INSERT INTO noderaw VALUES ('"+\
@@ -74,7 +107,7 @@ def get_all_nodes_unordered():
     return ret
 
 # Get the min and max of the observed times
-def get_min_max_time():
+def get_min_max_time_raw():
     c, conn = connect(get_db_name_noderaw())
     c.execute("SELECT MIN(time_sec) AS min, MAX(time_sec) AS max FROM noderaw;")
     ret = c.fetchall()
@@ -97,4 +130,70 @@ def get_nodes_aggregate_time(start, end):
     ret = c.fetchall()
     close(conn)
     return ret
-    
+
+def delete_period_filter_time(time_start):
+    c, conn = connect(get_db_name_nodecompute())
+    sql_command = "DELETE FROM nodeperiod WHERE time_start >= " + str(time_start) + ";"
+    print(sql_command)
+    c.execute(sql_command)
+    ret = c.fetchall()
+    close(conn)
+    return ret
+
+def add_period_entry(time_start, time_end, count_tot, ip, port, count, account, avg_bal):
+    c, conn = connect(get_db_name_nodecompute())
+    sql_command = "INSERT INTO nodeperiod VALUES ("+\
+        str(time_start) + ", "+\
+        str(time_end) + ", " +\
+        str(count_tot) + ", '"+\
+        str(ip) + "', '"+\
+        str(port) + "', "+\
+        str(count) + ", '"+\
+        str(account) + "', "+\
+        str(avg_bal) + ""+\
+        ");"
+    c.execute(sql_command)
+    ret = c.fetchall()
+    close(conn)
+    return ret
+
+def get_all_period_sorted():
+    c, conn = connect(get_db_name_nodecompute())
+    sql_command = "SELECT * FROM nodeperiod ORDER BY time_start ASC, ip ASC;"
+    c.execute(sql_command)
+    ret = c.fetchall()
+    close(conn)
+    return ret
+
+# Get the min and max of the observed period times
+def get_min_max_time_period():
+    c, conn = connect(get_db_name_noderaw())
+    c.execute("SELECT MIN(time_start) AS min, MAX(time_start) AS max FROM nodeperiod;")
+    ret = c.fetchall()
+    close(conn)
+    return ret
+
+# get period entries, filtered by a time range
+def get_nodes_period_filter_time(start, end):
+    c, conn = connect(get_db_name_nodecompute())
+    c.execute("SELECT * FROM nodeperiod WHERE time_start >= " + str(start) + " AND time_start < " + str(end) + ";")
+    ret = c.fetchall()
+    close(conn)
+    return ret
+
+def delete_daily_filter_time(time_start):
+    c, conn = connect(get_db_name_nodecompute())
+    sql_command = "DELETE FROM nodedaily WHERE time_start >= " + str(time_start) + ";"
+    print(sql_command)
+    c.execute(sql_command)
+    ret = c.fetchall()
+    close(conn)
+    return ret
+
+def get_all_daily_sorted():
+    c, conn = connect(get_db_name_nodecompute())
+    sql_command = "SELECT * FROM nodedaily ORDER BY time_start ASC, ip ASC;"
+    c.execute(sql_command)
+    ret = c.fetchall()
+    close(conn)
+    return ret
