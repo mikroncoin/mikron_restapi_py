@@ -76,6 +76,7 @@ def create_db_nodedaily():
             account text,
             count_pos int,
             count_neg int,
+            count_nonempty int,
             avg_bal text,
             eligible int,
             deny_reason text,
@@ -187,6 +188,7 @@ def get_nodes_period_filter_time(start, end):
     c.execute(sql_command)
     ret = c.fetchall()
     close(conn)
+    #print(len(ret))
     return ret
 
 def delete_daily_filter_time(time_start):
@@ -206,7 +208,15 @@ def get_all_daily_sorted_filter_time(time_start):
     close(conn)
     return ret
 
-def add_daily(time_start, time_end, ip, port, account, count_pos, count_neg, avg_bal):
+def get_all_daily_sorted_filter_elig_time(time_start):
+    c, conn = connect(get_db_name_nodecompute())
+    sql_command = "SELECT * FROM nodedaily WHERE eligible > 0 AND time_start >= " + str(time_start) + " ORDER BY time_start ASC, ip ASC;"
+    c.execute(sql_command)
+    ret = c.fetchall()
+    close(conn)
+    return ret
+
+def add_daily(time_start, time_end, ip, port, account, count_pos, count_neg, count_nonempty, avg_bal):
     c, conn = connect(get_db_name_nodecompute())
     sql_command = "INSERT INTO nodedaily VALUES ("+\
         str(time_start) + ", "+\
@@ -215,7 +225,8 @@ def add_daily(time_start, time_end, ip, port, account, count_pos, count_neg, avg
         str(port) + "', '"+\
         str(account) + "', "+\
         str(count_pos) + ", "+\
-        str(count_neg) + ", '"+\
+        str(count_neg) + ", "+\
+        str(count_nonempty) + ", '"+\
         str(avg_bal) + "',"+\
         "0, '?', '', '', '', ''"+\
         ");"

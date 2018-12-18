@@ -68,10 +68,12 @@ def recompute_aggregated_period(time_start, period):
 
 # Evaluate eligibility based on aggregated daily info
 def evaluate_daily(time_start):
+    now = int(time.time())
     ret = db.get_all_daily_sorted_filter_time(time_start)
     print('Retrieved', len(ret), 'daily records')
     for e in ret:
         time_start = int(e['time_start'])
+        time_end = int(e['time_end'])
         date_time_start = datetime.datetime.utcfromtimestamp(time_start)
         ip = e['ip']
         count_pos = int(e['count_pos'])
@@ -81,6 +83,13 @@ def evaluate_daily(time_start):
         eligible = 1
         deny_reason = 'OK'
         reward_elig = 0
+
+        # Evaluate: deny if day is not still complete
+        if eligible > 0:
+            if (time_end > now):
+                eligible = 0
+                deny_reason = 'Day has not passed yet'
+
         # Evaluate: deny if not online enough
         if eligible > 0:
             if (count_neg >= 29):
@@ -204,8 +213,8 @@ def recompute_aggregated_days(time_start):
             if count_pos > 0:
                 avg_bal = sum_bal / float(count_pos)
             node_dict[ip]['avg_bal'] = avg_bal
-            #print('  ', ip, count_pos, count_neg, avg_bal, node_dict[ip]['port'], node_dict[ip]['account'])
-            db.add_daily(day_start, day_end, ip, node_dict[ip]['port'], node_dict[ip]['account'], count_pos, count_neg, avg_bal)
+            #print('  ', ip, count_pos, count_neg, period_cnt_nonempty, avg_bal, node_dict[ip]['port'], node_dict[ip]['account'])
+            db.add_daily(day_start, day_end, ip, node_dict[ip]['port'], node_dict[ip]['account'], count_pos, count_neg, period_cnt_nonempty, avg_bal)
     # end days cycle
 
     evaluate_daily(min_adj)
@@ -244,7 +253,7 @@ def regen_and_dump_aggregated_daily(time_start_rel_day):
         ip = e['ip']
         eligible = int(e['eligible'])
         if eligible != 0:
-            print('  ', date_time_start.isoformat(), ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['avg_bal'], e['port'], e['account'])
+            print('  ', date_time_start.isoformat(), ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['count_nonempty'], e['avg_bal'], e['port'], e['account'])
     print('Non-eligible nodes:')
     for e in ret:
         time_start = int(e['time_start'])
@@ -252,4 +261,4 @@ def regen_and_dump_aggregated_daily(time_start_rel_day):
         ip = e['ip']
         eligible = int(e['eligible'])
         if eligible == 0:
-            print('  ', date_time_start.isoformat(), ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['avg_bal'], e['port'], e['account'])
+            print('  ', date_time_start.isoformat(), ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['count_nonempty'], e['avg_bal'], e['port'], e['account'])

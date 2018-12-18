@@ -39,7 +39,7 @@ def save_node(time, obs_srv, obs_firewall, host, port, account, balance):
     #print("Saved node:", time, obs_srv, obs_firewall, host, port, account, ".")
 
 def save_nodes_int(session, obs_srv, obs_firewall):
-    now = time.time()
+    now = int(time.time())
     try:
         url = obs_srv + "/peers/list"
         response = session.get(url)
@@ -72,7 +72,7 @@ def save_nodes_int(session, obs_srv, obs_firewall):
     return 0
 
 def save_nodes(session, obs_srv, obs_firewall):
-    now = time.time()
+    #now = int(time.time())
     get_logger().info('Retrieving node list, srv ' + str(obs_srv))
     no_nodes_saved = save_nodes_int(session, obs_srv, obs_firewall)
     if no_nodes_saved == 0:
