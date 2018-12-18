@@ -73,10 +73,16 @@ def create_db_nodedaily():
             time_end long,
             ip text,
             port text,
+            account text,
             count_pos int,
             count_neg int,
-            account text,
-            avg_bal text
+            avg_bal text,
+            eligible int,
+            deny_reason text,
+            reward_elig text,
+            reward_sent text,
+            sent_hash text,
+            sent_time text
             )''')
     get_logger().info("DB table nodedaily created")
     close(conn)
@@ -134,7 +140,7 @@ def get_nodes_aggregate_time(start, end):
 def delete_period_filter_time(time_start):
     c, conn = connect(get_db_name_nodecompute())
     sql_command = "DELETE FROM nodeperiod WHERE time_start >= " + str(time_start) + ";"
-    print(sql_command)
+    #print(sql_command)
     c.execute(sql_command)
     ret = c.fetchall()
     close(conn)
@@ -176,7 +182,9 @@ def get_min_max_time_period():
 # get period entries, filtered by a time range
 def get_nodes_period_filter_time(start, end):
     c, conn = connect(get_db_name_nodecompute())
-    c.execute("SELECT * FROM nodeperiod WHERE time_start >= " + str(start) + " AND time_start < " + str(end) + ";")
+    sql_command = "SELECT * FROM nodeperiod WHERE time_start >= " + str(start) + " AND time_start < " + str(end) + ";"
+    #print(sql_command)
+    c.execute(sql_command)
     ret = c.fetchall()
     close(conn)
     return ret
@@ -184,15 +192,47 @@ def get_nodes_period_filter_time(start, end):
 def delete_daily_filter_time(time_start):
     c, conn = connect(get_db_name_nodecompute())
     sql_command = "DELETE FROM nodedaily WHERE time_start >= " + str(time_start) + ";"
-    print(sql_command)
+    #print(sql_command)
     c.execute(sql_command)
     ret = c.fetchall()
     close(conn)
     return ret
 
-def get_all_daily_sorted():
+def get_all_daily_sorted_filter_time(time_start):
     c, conn = connect(get_db_name_nodecompute())
-    sql_command = "SELECT * FROM nodedaily ORDER BY time_start ASC, ip ASC;"
+    sql_command = "SELECT * FROM nodedaily WHERE time_start >= " + str(time_start) + " ORDER BY time_start ASC, ip ASC;"
+    c.execute(sql_command)
+    ret = c.fetchall()
+    close(conn)
+    return ret
+
+def add_daily(time_start, time_end, ip, port, account, count_pos, count_neg, avg_bal):
+    c, conn = connect(get_db_name_nodecompute())
+    sql_command = "INSERT INTO nodedaily VALUES ("+\
+        str(time_start) + ", "+\
+        str(time_end) + ", '" +\
+        str(ip) + "', '"+\
+        str(port) + "', '"+\
+        str(account) + "', "+\
+        str(count_pos) + ", "+\
+        str(count_neg) + ", '"+\
+        str(avg_bal) + "',"+\
+        "0, '?', '', '', '', ''"+\
+        ");"
+    c.execute(sql_command)
+    ret = c.fetchall()
+    close(conn)
+    return ret
+
+def update_daily_eligible(time_start, ip, eligible, deny_reason, reward_elig):
+    c, conn = connect(get_db_name_nodecompute())
+    sql_command = "UPDATE nodedaily SET " +\
+        "eligible=" + str(eligible) + ", " +\
+        "deny_reason='" + str(deny_reason) + "', " +\
+        "reward_elig='" + str(reward_elig) + "' WHERE " +\
+        "time_start=" + str(time_start) + " AND ip='" + str(ip) + "'" +\
+        ";"
+    #print(sql_command)
     c.execute(sql_command)
     ret = c.fetchall()
     close(conn)
