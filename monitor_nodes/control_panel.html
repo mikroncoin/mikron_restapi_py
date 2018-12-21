@@ -1,0 +1,127 @@
+<html>
+    <head>
+        <meta charset="UTF-8"/>
+        <script>
+function refresh_all() {
+    refresh_daily();
+    refresh_periods();
+}
+
+function refresh_daily() {
+    get_daily_last3();
+}
+
+function refresh_periods() {
+    get_period_last6();
+}
+
+function get_daily_last3() {
+    var url = /*serviceBaseUrl + */"/monitor_nodes/rewards/last3";
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function() {
+        if (http.readyState == XMLHttpRequest.DONE) {
+            if (http.status == 200) {
+                daily_res = JSON.parse(http.response);
+                //console.log(daily_res);
+                load_daily(daily_res)
+            }
+            else {
+                console.log('Something else other than 200 was returned ' + http.status + ' ' + url);
+            }
+        }
+    };
+    http.open("GET", url, true);
+    http.send();
+}
+
+var hide_non_eligible = true;
+
+function load_daily(dd) {
+    let t = "<table>";
+    t += daily_header();
+    dd.forEach(e => {
+        t += load_day(e);
+    });
+    t += "</table>";
+    document.getElementById("d_daily").innerHTML = t;
+}
+
+function load_day(e) {
+    var eligible = e['eligible'];
+    if (eligible == '0')
+        if (hide_non_eligible)
+            return '';
+    var time_start = e['time_start'];
+    var time = new Date(time_start * 1000).toLocaleDateString();
+    return "<tr><td>" + time + "</td><td>" + e['ip'] + ":" + e['port'] +
+        "</td><td>" + e['eligible'] + "</td><td>" + e['count_pos'] + " / " + e['count_neg'] + "</td><td>" + e['avg_bal'] + "</td><td>" + e['account'].substring(0, 15) + "...</td></tr>";
+}
+
+function refresh_period() {
+    let t = "<table>";
+    t += period_header();
+    t += "</table>";
+    document.getElementById("d_period").innerHTML = t;
+}
+
+function daily_header() {
+    return "<tr><td>Day</td><td>Endpoint</td><td>Eligible</td><td>Seen/Missed</td><td>Avg Bal (MIK)</td><td>Account</td></tr>";
+}
+
+function get_period_last6() {
+    var url = /*serviceBaseUrl + */"/monitor_nodes/periods/last6";
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function() {
+        if (http.readyState == XMLHttpRequest.DONE) {
+            if (http.status == 200) {
+                period_res = JSON.parse(http.response);
+                console.log(period_res);
+                load_periods(period_res)
+            }
+            else {
+                console.log('Something else other than 200 was returned ' + http.status + ' ' + url);
+            }
+        }
+    };
+    http.open("GET", url, true);
+    http.send();
+}
+
+function load_periods(dd) {
+    let t = "<table>";
+    t += period_header();
+    dd.forEach(e => {
+        t += load_period(e);
+    });
+    t += "</table>";
+    document.getElementById("d_period").innerHTML = t;
+}
+
+function load_period(e) {
+    var time_start = e['time_start'];
+    var time = new Date(time_start * 1000).toLocaleString();
+    return "<tr><td>" + time + "</td><td>" + e['ip'] + ":" + e['port'] + "</td><td>" +
+        + e['avg_bal'] + "</td><td>" + e['account'].substring(0, 15) + "...</td></tr>";
+}
+
+function period_header() {
+    return "<tr><td>Time</td><td>Endpoint</td><td>Avg. Bal (MIK)</td><td>Account</td></tr>";
+}
+        </script>
+    </head>
+    <body onload="refresh_all()">
+        <h1>Node Reward Control Panel</h1>
+
+        <div>
+            <h2>Daily Summary</h2>
+            <div id="d_daily">
+            </div>
+        </div>
+
+        <div>
+            <h2>10-minute-period Summary</h2>
+            <div id="d_period">
+            </div>
+        </div>
+    </body>
+</html>

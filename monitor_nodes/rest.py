@@ -7,6 +7,11 @@ from threading import Thread
 import datetime
 import time
 
+@route('/monitor_nodes/', method='GET')
+@route('/monitor_nodes', method='GET')
+def get_control_panel_index():
+    return static_file("control_panel.html", root="monitor_nodes/")
+
 def setHeaders():
     response.content_type = 'application/json'
     response.headers['Access-Control-Allow-Origin'] = '*'
@@ -20,7 +25,7 @@ def getRewards3():
     start0 = int(time.time()) - 3 * period_day
     start = int(start0 / period_day) * period_day
 
-    nodes = db.get_all_daily_sorted_filter_elig_time(start)
+    nodes = db.get_all_daily_sorted_filter_time(start)
     ret = []
     try:
         for n in nodes:
