@@ -2,17 +2,25 @@
     <head>
         <meta charset="UTF-8"/>
         <script>
-function refresh_all() {
-    refresh_daily();
-    refresh_periods();
+function load_all() {
+    load_all_daily();
+    load_all_periods();
 }
 
-function refresh_daily() {
+function load_all_daily() {
     get_daily_last3();
 }
 
-function refresh_periods() {
+function load_all_periods() {
     get_period_last6();
+}
+
+var hide_zero_balance = true;
+
+function hide_0_bal_change() {
+    hide_zero_balance = document.getElementById('hide_0_bal').checked;
+    //console.log('hide_zero_balance ' + hide_zero_balance);
+    load_all_daily();
 }
 
 function get_daily_last3() {
@@ -34,8 +42,6 @@ function get_daily_last3() {
     http.send();
 }
 
-var hide_non_eligible = true;
-
 function load_daily(dd) {
     let t = "<table>";
     t += daily_header();
@@ -47,14 +53,14 @@ function load_daily(dd) {
 }
 
 function load_day(e) {
-    var eligible = e['eligible'];
-    if (eligible == '0')
-        if (hide_non_eligible)
+    var avg_bal = parseFloat(e['avg_bal']);
+    if (hide_zero_balance)
+        if (avg_bal == 0)
             return '';
     var time_start = e['time_start'];
     var time = new Date(time_start * 1000).toLocaleDateString();
     return "<tr><td>" + time + "</td><td>" + e['ip'] + ":" + e['port'] +
-        "</td><td>" + e['eligible'] + "</td><td>" + e['count_pos'] + " / " + e['count_neg'] + "</td><td>" + e['avg_bal'] + "</td><td>" + e['account'].substring(0, 15) + "...</td></tr>";
+        "</td><td>" + e['eligible'] + "</td><td>" + e['count_pos'] + " / " + e['count_neg'] + "</td><td>" + avg_bal + "</td><td>" + e['account'].substring(0, 15) + "...</td><td>" + e['deny_reason'] + "</td></tr>";
 }
 
 function refresh_period() {
@@ -65,7 +71,7 @@ function refresh_period() {
 }
 
 function daily_header() {
-    return "<tr><td>Day</td><td>Endpoint</td><td>Eligible</td><td>Seen/Missed</td><td>Avg Bal (MIK)</td><td>Account</td></tr>";
+    return "<tr><td>Day</td><td>Endpoint</td><td>Eligible</td><td>Seen/Missed</td><td>Avg Bal (MIK)</td><td>Account</td><td>Reason</td></tr>";
 }
 
 function get_period_last6() {
@@ -75,7 +81,7 @@ function get_period_last6() {
         if (http.readyState == XMLHttpRequest.DONE) {
             if (http.status == 200) {
                 period_res = JSON.parse(http.response);
-                console.log(period_res);
+                //console.log(period_res);
                 load_periods(period_res)
             }
             else {
@@ -109,11 +115,12 @@ function period_header() {
 }
         </script>
     </head>
-    <body onload="refresh_all()">
+    <body onload="load_all()">
         <h1>Node Reward Control Panel</h1>
 
         <div>
             <h2>Daily Summary</h2>
+            <div><input type="checkbox" id="hide_0_bal" checked onclick="hide_0_bal_change()">Hide zero balances</checkbox></div>
             <div id="d_daily">
             </div>
         </div>

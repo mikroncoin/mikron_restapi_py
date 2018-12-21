@@ -4,14 +4,47 @@ import datetime
 import sys
 import time
 
-def dump_raw():
-    nodes = db.get_all_nodes_unordered()
-    print(str(len(nodes)) + " nodes")
-    for n in nodes:
-        print(int(n['time_sec']), n['ip'], n['port'], n['balance'], n['account'], sep=', ')
+is_running_evaluate_periods = False
+is_running_evaluate_days = False
+def start_evaluate_periods():
+    global is_running_evaluate_periods
+    now = int(time.time())
+    if is_running_evaluate_periods:
+        print('WARNING', 'evaluate_periods', 'already running', now)
+        return
+    is_running_evaluate_periods = True
+    #print('start_evaluate_periods', now)
+def stop_evaluate_periods():
+    global is_running_evaluate_periods
+    now = int(time.time())
+    if not is_running_evaluate_periods:
+        print('WARNING', 'evaluate_periods', 'not running', now)
+        return
+    is_running_evaluate_periods = False
+    #print('stop_evaluate_periods', now)
+def start_evaluate_days():
+    global is_running_evaluate_days
+    now = int(time.time())
+    if is_running_evaluate_days:
+        print('WARNING', 'evaluate_days', 'already running', now)
+        return
+    is_running_evaluate_days = True
+    #print('start_evaluate_days', now)
+def stop_evaluate_days():
+    global is_running_evaluate_days
+    now = int(time.time())
+    if not is_running_evaluate_days:
+        print('WARNING', 'evaluate_days', 'not running', now)
+        return
+    is_running_evaluate_days = False
+    #print('stop_evaluate_days', now)
 
 # Phase 1: Aggregate data into periods of period seconds
-def recompute_aggregated_period(time_start, period):
+def evaluate_periods(time_start, period):
+    if is_running_evaluate_periods:
+        return
+    start_evaluate_periods()
+
     minmax = db.get_min_max_time_raw()
     #print(minmax)
     min = int(float(minmax[0]['min']))
@@ -66,8 +99,10 @@ def recompute_aggregated_period(time_start, period):
                     #account = '0'  # hide print, just visual
                     #print(start, ep, count, avg_bal, account)
 
+    stop_evaluate_periods()
+
 # Evaluate eligibility based on aggregated daily info
-def evaluate_daily(time_start):
+def __evaluate_daily(time_start):
     now = int(time.time())
     ret = db.get_all_daily_sorted_filter_time(time_start)
     print('Retrieved', len(ret), 'daily records')
@@ -114,7 +149,12 @@ def evaluate_daily(time_start):
         #print('  ', time_start, e['time_end'], date_time_start.isoformat(), ip, eligible, deny_reason, count_pos, count_neg, avg_bal, e['port'], e['account'])
 
 # Aggregate data into days
-def recompute_aggregated_days(time_start):
+def evaluate_days(time_start):
+    if is_running_evaluate_days:
+        return
+    start_evaluate_days()
+
+    # TODO do not evaluate period for which payment has already made!
     minmax = db.get_min_max_time_raw()
     #print(minmax)
     min = int(float(minmax[0]['min']))
@@ -217,14 +257,23 @@ def recompute_aggregated_days(time_start):
             db.add_daily(day_start, day_end, ip, node_dict[ip]['port'], node_dict[ip]['account'], count_pos, count_neg, period_cnt_nonempty, avg_bal)
     # end days cycle
 
-    evaluate_daily(min_adj)
+    __evaluate_daily(min_adj)
+
+    stop_evaluate_days()
+
+# Dump all raw data
+def dump_raw():
+    nodes = db.get_all_nodes_unordered()
+    print(str(len(nodes)) + " nodes")
+    for n in nodes:
+        print(int(n['time_sec']), n['ip'], n['port'], n['balance'], n['account'], sep=', ')
 
 # Print aggregated data, by periods
 def regen_and_dump_aggregated_period(time_start_rel_day, period):
     now = int(time.time())
     time_start0 = now - 24 * 3600 * time_start_rel_day
     #print(time_start0)
-    recompute_aggregated_period(time_start0, period)
+    evaluate_periods(time_start0, period)
     ret = db.get_all_period_sorted()
     print('Retrieved', len(ret), 'period records')
     for e in ret:
@@ -242,8 +291,8 @@ def regen_and_dump_aggregated_daily(time_start_rel_day):
     now = int(time.time())
     time_start0 = now - 24 * 3600 * time_start_rel_day
     #print(time_start0)
-    recompute_aggregated_period(time_start0, 600)  # 10-min
-    recompute_aggregated_days(time_start0)
+    evaluate_periods(time_start0, 600)  # 10-min
+    evaluate_days(time_start0)
     ret = db.get_all_daily_sorted_filter_time(time_start0 - 24 *3600)
     #print('Retrieved', len(ret), 'daily records')
     print('Eligible nodes:')

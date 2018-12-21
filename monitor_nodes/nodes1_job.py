@@ -8,14 +8,14 @@ import requests
 import json
 
 # monitor (retrieve and save) nodes
-"""job delay in sec"""
+# job delay in sec
 delay = 120
 obs_1_srv = "http://server2.mikron.io:8226"
 obs_1_firewall = 0
 logging.basicConfig(level=logging.INFO)
 
 def get_logger():
-    """ Get named logger """
+    # Get named logger
     return logging.getLogger(__name__)
 
 def parse_endpoint(endpoint):
@@ -83,6 +83,7 @@ def save_nodes(session, obs_srv, obs_firewall):
 def start_job():
     now = int(time.time())
     next_update = now + 1
+    get_logger().info('Started')
     while getattr(threading.currentThread(), "do_run", True):
         now = int(time.time())
         if now >= next_update:
@@ -92,12 +93,15 @@ def start_job():
         to_sleep = max((next_update - now) / 2 - 1, 0.5)
         #get_logger().info("Sleep for " + str(to_sleep) + " sec");
         time.sleep(to_sleep)
+    get_logger().info('Stopping')
 
 bg_thread = None
 def start_background():
+    global bg_thread
     bg_thread = threading.Thread(target=start_job)
     bg_thread.start()
 
 def stop_background():
+    global bg_thread
     bg_thread.do_run = False
     bg_thread.join()
