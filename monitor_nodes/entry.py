@@ -13,5 +13,6 @@ port = 8231
 
 run(host=host, port=port, debug=True)
 
+print('Exiting (stand by...)')
 nodes2_job.stop_background()
 nodes1_job.stop_background()

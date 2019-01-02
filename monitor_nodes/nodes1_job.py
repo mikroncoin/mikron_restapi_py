@@ -90,7 +90,7 @@ def start_job():
             nodes_one()
             next_update = int((next_update + delay) / delay) * delay
             #get_logger().info("Next check in " + str(next_update - now) + " sec");
-        to_sleep = max((next_update - now) / 2 - 1, 0.5)
+        to_sleep = min(30, max(0.5, (next_update - now) / 2 - 1))
         #get_logger().info("Sleep for " + str(to_sleep) + " sec");
         time.sleep(to_sleep)
     get_logger().info('Stopping')

@@ -3,6 +3,7 @@ import db
 import datetime
 import sys
 import time
+import logging
 
 is_running_evaluate_periods = False
 is_running_evaluate_days = False
@@ -38,6 +39,10 @@ def stop_evaluate_days():
         return
     is_running_evaluate_days = False
     #print('stop_evaluate_days', now)
+
+def get_logger():
+    # Get named logger
+    return logging.getLogger(__name__)
 
 # Phase 1: Aggregate data into periods of period seconds
 def evaluate_periods(time_start, period):
@@ -102,11 +107,15 @@ def evaluate_periods(time_start, period):
     stop_evaluate_periods()
 
 # Evaluate eligibility based on aggregated daily info
+# 25 MIK/day, min. 1000 MIK reserve; max 200 (total daily 5000)
+# 375+25 MIK/day, min. 25K reserve; max 20 (total daily 7500)
+# 4600+375+25 MIK/day, min. 1M reserve; max 5 (total daily 23000)
 def __evaluate_daily(time_start):
     now = int(time.time())
-    ret = db.get_all_daily_sorted_filter_time(time_start)
-    print('Retrieved', len(ret), 'daily records')
-    for e in ret:
+    daynodes = db.get_all_daily_sorted_filter_time(time_start)
+    print('Retrieved', len(daynodes), 'daily records')
+    # Evaluate being online criteria
+    for e in daynodes:
         time_start = int(e['time_start'])
         time_end = int(e['time_end'])
         date_time_start = datetime.datetime.utcfromtimestamp(time_start)
@@ -117,34 +126,101 @@ def __evaluate_daily(time_start):
 
         eligible = 1
         deny_reason = 'OK'
-        reward_elig = 0
+        e['reward_elig'] = 0
 
         # Evaluate: deny if day is not still complete
         if eligible > 0:
             if (time_end > now):
                 eligible = 0
                 deny_reason = 'Day has not passed yet'
-
         # Evaluate: deny if not online enough
         if eligible > 0:
             if (count_neg >= 29):
                 eligible = 0
                 deny_reason = 'Not online enough, not seen in ' + str(count_neg) + ' 10-minute periods'
 
-        # Evaluate: check reserve size
-        if eligible > 0:
-            if (avg_bal < 1000.0):
-                eligible = 0
-                deny_reason = 'Not enough reserve ' + str(avg_bal) + ' (min. 1000)'
-            else:
-                if (avg_bal < 25000.0):
-                    eligible = 1
-                    reward_elig = 25
-                    deny_reason = 'Eligible for reward ' + str(reward_elig) + ' (min. 1000)'
-                # TODO larger sums
+        e['eligible'] = eligible
+        e['deny_reason'] = deny_reason
 
-        # Save result
-        db.update_daily_eligible(time_start, ip, eligible, deny_reason, reward_elig)
+    # Collect relevant balances
+    avail_balance = {} # key is reserve account
+    for e in daynodes:
+        if e['eligible'] > 0:
+            acc = e['account']
+            bal = e['avg_bal']
+            avail_balance[acc] = {'tot': avg_bal, 'avail': avg_bal}
+
+    # Reward categories
+    limit_cat1 = 1000
+    limit_cat2 = 25000
+    limit_cat3 = 1000000
+    reward_cat1 = 25
+    reward_cat2 = 375
+    reward_cat3 = 4600
+    max_count_cat1 = 200
+    max_count_cat2 = 20
+    max_count_cat3 = 5
+
+    # Count candidates per categories (to compute reqards if over limit)
+    count_cat1 = 0
+    count_cat2 = 0
+    count_cat3 = 0
+    for e in daynodes:
+        if e['eligible'] > 0:
+            acc = e['account']
+            if acc not in avail_balance:
+                get_logger().error('Internal ERROR: Account not found in avail_balance ' + str(acc) + str(e['ip']))
+            else:
+                if avail_balance[acc]['avail'] >= limit_cat3:
+                    count_cat3 += 1
+                    avail_balance[acc]['avail'] -= limit_cat3
+                if avail_balance[acc]['avail'] >= limit_cat2:
+                    count_cat2 += 1
+                    avail_balance[acc]['avail'] -= limit_cat2
+                if avail_balance[acc]['avail'] >= limit_cat1:
+                    count_cat1 += 1
+                    avail_balance[acc]['avail'] -= limit_cat1
+    
+    # Compute reward amounts
+    capped_count_cat1 = max(count_cat1, max_count_cat1)
+    capped_count_cat2 = max(count_cat2, max_count_cat2)
+    capped_count_cat3 = max(count_cat3, max_count_cat3)
+    reward_cat1 = (max_count_cat1 * reward_cat1) / float(capped_count_cat1)
+    reward_cat2 = (max_count_cat2 * reward_cat2) / float(capped_count_cat2)
+    reward_cat3 = (max_count_cat3 * reward_cat3) / float(capped_count_cat3)
+    # Print candidates per category, and rewards
+    get_logger().info('Candidates in category 1: ' + str(count_cat1) + ' (' + str(capped_count_cat1) + ') rew ' + str(reward_cat1) + ' (lim ' + str(limit_cat1) + ')')
+    get_logger().info('Candidates in category 2: ' + str(count_cat2) + ' (' + str(capped_count_cat2) + ') rew ' + str(reward_cat2) + ' (lim ' + str(limit_cat2) + ')')
+    get_logger().info('Candidates in category 3: ' + str(count_cat3) + ' (' + str(capped_count_cat3) + ') rew ' + str(reward_cat3) + ' (lim ' + str(limit_cat3) + ')')
+
+    for acc in avail_balance:
+        #print(acc)
+        avail_balance[acc]['avail'] = avail_balance[acc]['tot']
+    # Evaluate reserve criteria (balance)
+    for e in daynodes:
+        if e['eligible'] > 0:
+            avg_bal = float(e['avg_bal'])
+            if avg_bal < limit_cat1:
+                e['eligible'] = 0
+                e['deny_reason'] = 'Not enough reserve ' + str(avg_bal) + ' (min. ' + str(limit_cat1) + ')'
+            else:
+                if avg_bal < limit_cat2:
+                    e['eligible'] = 1
+                    e['reward_elig'] = reward_cat1
+                    e['deny_reason'] = 'Eligible for reward Cat.1 ' + str(reward_cat1) + ' (min. ' + str(limit_cat1) + ')'
+                else:
+                    if avg_bal < limit_cat3:
+                        e['eligible'] = 1
+                        e['reward_elig'] = reward_cat2 + reward_cat1
+                        e['deny_reason'] = 'Eligible for reward Cat.2 ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ' (min. ' + str(limit_cat2) + ')'
+                    else:
+                        e['eligible'] = 1
+                        e['reward_elig'] = reward_cat3 + reward_cat2 + reward_cat1
+                        e['deny_reason'] = 'Eligible for reward Cat.3 ' + str(reward_cat3) + ' + ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ' (min. ' + str(limit_cat3) + ')'
+
+    # Save result
+    for e in daynodes:
+        db.update_daily_eligible(e['time_start'], e['ip'], e['eligible'], e['deny_reason'], e['reward_elig'])  # TODO key is it enough?
         # Print result
         #print('  ', time_start, e['time_end'], date_time_start.isoformat(), ip, eligible, deny_reason, count_pos, count_neg, avg_bal, e['port'], e['account'])
 
@@ -287,12 +363,15 @@ def regen_and_dump_aggregated_period(time_start_rel_day, period):
             print('  ', time_start, e['time_end'], date_time_start.isoformat(), count_tot, e['ip'], e['port'], count, e['account'], avg_bal)
 
 # Print aggregated data, by days
-def regen_and_dump_aggregated_daily(time_start_rel_day):
+def regen_and_dump_aggregated_daily(time_start_rel_day, reeval_periods = False):
     now = int(time.time())
     time_start0 = now - 24 * 3600 * time_start_rel_day
     #print(time_start0)
-    evaluate_periods(time_start0, 600)  # 10-min
+
+    if reeval_periods:
+        evaluate_periods(time_start0, 600)  # 10-min
     evaluate_days(time_start0)
+
     ret = db.get_all_daily_sorted_filter_time(time_start0 - 24 *3600)
     #print('Retrieved', len(ret), 'daily records')
     print('Eligible nodes:')

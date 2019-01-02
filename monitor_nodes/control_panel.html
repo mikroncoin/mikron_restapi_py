@@ -18,8 +18,6 @@ function load_all_periods() {
 var hide_zero_balance = true;
 
 function hide_0_bal_change() {
-    hide_zero_balance = document.getElementById('hide_0_bal').checked;
-    //console.log('hide_zero_balance ' + hide_zero_balance);
     load_all_daily();
 }
 
@@ -43,6 +41,8 @@ function get_daily_last3() {
 }
 
 function load_daily(dd) {
+    hide_zero_balance = document.getElementById('hide_0_bal').checked;
+    //console.log('hide_zero_balance ' + hide_zero_balance);
     let t = "<table>";
     t += daily_header();
     dd.forEach(e => {
