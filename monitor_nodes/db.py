@@ -227,8 +227,9 @@ def add_daily(time_start, time_end, ip, port, account, count_pos, count_neg, cou
         str(count_pos) + ", "+\
         str(count_neg) + ", "+\
         str(count_nonempty) + ", '"+\
-        str(avg_bal) + "',"+\
-        "0, '?', '', '', '', ''"+\
+        str(avg_bal) + "'," +\
+        "0, '?', '', '', " +\
+        "'', ''" +\
         ");"
     c.execute(sql_command)
     ret = c.fetchall()
@@ -240,8 +241,11 @@ def update_daily_eligible(time_start, ip, eligible, deny_reason, reward_elig):
     sql_command = "UPDATE nodedaily SET " +\
         "eligible=" + str(eligible) + ", " +\
         "deny_reason='" + str(deny_reason) + "', " +\
-        "reward_elig='" + str(reward_elig) + "' WHERE " +\
-        "time_start=" + str(time_start) + " AND ip='" + str(ip) + "'" +\
+        "reward_elig='" + str(reward_elig) + "', " +\
+        "reward_sent='' WHERE " +\
+        "time_start=" + str(time_start) +\
+        " AND ip='" + str(ip) + "' AND " +\
+        "reward_sent=''" +\
         ";"
     #print(sql_command)
     c.execute(sql_command)

@@ -12,7 +12,7 @@ def get_logger():
 def get_account_balance(session, base_url, account):
     try:
         url = base_url + '/account/balance/' + account
-        print('Getting balance for', account, url)
+        #print('Getting balance for', account, url)
         response = session.get(url)
         if response.status_code == 200:
             return (0, float(response.text))

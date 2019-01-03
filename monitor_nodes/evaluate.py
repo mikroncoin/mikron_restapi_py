@@ -73,7 +73,7 @@ def evaluate_periods(time_start, period):
             #print('Range', start, end-1, 'no data')
             noop = 0
         else:
-            print('Range', start, end-1, period, 'count', count_total)
+            #print('Range', start, end-1, period, 'count', count_total)
             #for n in nodes:
             #    print(int(n['time_sec']), n['ip'], n['port'], n['balance'], n['account'], sep=', ')
             # Aggregate by node
@@ -202,21 +202,21 @@ def __evaluate_daily(time_start):
             avg_bal = float(e['avg_bal'])
             if avg_bal < limit_cat1:
                 e['eligible'] = 0
-                e['deny_reason'] = 'Not enough reserve ' + str(avg_bal) + ' (min. ' + str(limit_cat1) + ')'
+                e['deny_reason'] = 'Not enough Reserve ' + str(avg_bal) + ' (limit ' + str(limit_cat1) + ')'
             else:
                 if avg_bal < limit_cat2:
                     e['eligible'] = 1
                     e['reward_elig'] = reward_cat1
-                    e['deny_reason'] = 'Eligible for reward Cat.1 ' + str(reward_cat1) + ' (min. ' + str(limit_cat1) + ')'
+                    e['deny_reason'] = 'Eligible for Reward (C1) ' + str(reward_cat1) + ' (limit ' + str(limit_cat1) + ')'
                 else:
                     if avg_bal < limit_cat3:
                         e['eligible'] = 1
                         e['reward_elig'] = reward_cat2 + reward_cat1
-                        e['deny_reason'] = 'Eligible for reward Cat.2 ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ' (min. ' + str(limit_cat2) + ')'
+                        e['deny_reason'] = 'Eligible for Reward (C2) ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ' (limit ' + str(limit_cat2) + ')'
                     else:
                         e['eligible'] = 1
                         e['reward_elig'] = reward_cat3 + reward_cat2 + reward_cat1
-                        e['deny_reason'] = 'Eligible for reward Cat.3 ' + str(reward_cat3) + ' + ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ' (min. ' + str(limit_cat3) + ')'
+                        e['deny_reason'] = 'Eligible for Reward (C3) ' + str(reward_cat3) + ' + ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ' (limit ' + str(limit_cat3) + ')'
 
     # Save result
     for e in daynodes:
