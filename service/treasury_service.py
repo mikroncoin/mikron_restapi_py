@@ -106,7 +106,7 @@ def sendAsync(src_account, src_walletid, dest_account, amount, unique_id, max_am
     t.start()
 
 # Sample send callback, used for testing
-#  Example: curl -d "{'id': 'FaucetPool', 'amount': 'some_password', 'block_hash': 'mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs', 'amount': '1', 'unique_id': '1234500017'}" http://localhost:8090/treasury/sample-send-callback
+#  Example: curl -d "{'id': '1234500017', 'amount': '3', 'block_hash': 'D70BB005723EF4AE3850861FB8819628CD101EE1F3A4FF40808213EB5B99FECF'}" http://localhost:8090/treasury/sample-send-callback
 @route('/treasury/sample-send-callback', method='POST')
 def sample_send_callback():
     global config

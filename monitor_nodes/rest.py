@@ -1,4 +1,5 @@
 import db
+import payout
 
 #import os
 import json
@@ -85,3 +86,29 @@ def getPeriods6():
 
 # TODO reward for ip/account for last 10 dasy
 # TODO period for ip for last 3 days
+
+# Sample send callback, used for testing
+#  Example: curl -d "{'id': '1234500017', 'amount': '3', 'block_hash': 'D70BB005723EF4AE3850861FB8819628CD101EE1F3A4FF40808213EB5B99FECF'}" http://localhost:8090/treasury/sample-send-callback
+@route('/monitor_nodes/send-callback', method='POST')
+def send_callback():
+    global config
+    setHeaders()
+    postdata = request.body.read().decode('utf8')
+    #print("postdata ", postdata)
+    postjson = json.loads(postdata.replace("'", '"'))
+    #print("postjson ", postjson)
+
+    if 'error' in postjson:
+        print('Send callback', 'ERROR', postjson['error'])
+    else:
+        id = ''
+        if 'id' in postjson:
+            id = postjson['id']
+        amount = 0
+        if 'amount' in postjson:
+            amount = postjson['amount']
+        block_hash = ''
+        if 'block_hash' in postjson:
+            block_hash = postjson['block_hash']
+        #print('Send callback', 'id', id, 'amount', amount, 'block_hash', block_hash)
+        payout.payout_callback(id, amount, block_hash)

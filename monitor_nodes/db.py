@@ -261,3 +261,19 @@ def update_daily_eligible(time_start, ip, eligible, deny_reason, reward_elig):
     ret = c.fetchall()
     close(conn)
     return ret
+
+def update_daily_sent(time_start, ip, reward_sent, sent_time, sent_hash):
+    c, conn = connect(get_db_name_nodecompute())
+    sql_command = "UPDATE nodedaily SET " +\
+        "reward_sent='" + str(reward_sent) + "', " +\
+        "sent_time='" + str(sent_time) + "', " +\
+        "sent_hash='" + str(sent_hash) + "' WHERE " +\
+        "time_start=" + str(time_start) +\
+        " AND ip='" + str(ip) + "' AND " +\
+        "reward_sent=''" +\
+        ";"
+    #print(sql_command)
+    c.execute(sql_command)
+    ret = c.fetchall()
+    close(conn)
+    return ret
