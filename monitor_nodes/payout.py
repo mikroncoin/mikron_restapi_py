@@ -12,10 +12,6 @@ def get_logger():
     return logging.getLogger(__name__)
 
 def do_payout_one(ip, start_time, dest_account, dest_amount, sendout_url, account_id, account_password, my_url):
-
-    # TODO
-    dest_amount = 1
-
     unique_id = str(ip) + "_" + str(start_time)
     callback = my_url + '/monitor_nodes/send-callback'
     url = sendout_url + '/treasury/send'
