@@ -208,9 +208,17 @@ def get_all_daily_sorted_filter_time(time_start):
     close(conn)
     return ret
 
-def get_all_daily_sorted_filter_elig_time(time_start):
+def get_daily_sorted_filter_elig_time(time_start):
     c, conn = connect(get_db_name_nodecompute())
     sql_command = "SELECT * FROM nodedaily WHERE eligible > 0 AND time_start >= " + str(time_start) + " ORDER BY time_start ASC, ip ASC;"
+    c.execute(sql_command)
+    ret = c.fetchall()
+    close(conn)
+    return ret
+
+def get_daily_filter_topay_time(time_start):
+    c, conn = connect(get_db_name_nodecompute())
+    sql_command = "SELECT * FROM nodedaily WHERE eligible > 0 AND reward_elig > 0 AND (reward_sent = '' OR reward_sent = '0') AND time_start >= " + str(time_start) + ";"
     c.execute(sql_command)
     ret = c.fetchall()
     close(conn)
@@ -238,6 +246,7 @@ def add_daily(time_start, time_end, ip, port, account, count_pos, count_neg, cou
 
 def update_daily_eligible(time_start, ip, eligible, deny_reason, reward_elig):
     c, conn = connect(get_db_name_nodecompute())
+    # do not modify nodes with already sent-out rewards
     sql_command = "UPDATE nodedaily SET " +\
         "eligible=" + str(eligible) + ", " +\
         "deny_reason='" + str(deny_reason) + "', " +\

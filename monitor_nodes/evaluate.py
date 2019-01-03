@@ -207,16 +207,16 @@ def __evaluate_daily(time_start):
                 if avg_bal < limit_cat2:
                     e['eligible'] = 1
                     e['reward_elig'] = reward_cat1
-                    e['deny_reason'] = 'Eligible for Reward (C1) ' + str(reward_cat1) + ' (limit ' + str(limit_cat1) + ')'
+                    e['deny_reason'] = 'Eligible for Reward, ' + str(reward_cat1) + ' (C1, limit ' + str(limit_cat1) + ')'
                 else:
                     if avg_bal < limit_cat3:
                         e['eligible'] = 1
                         e['reward_elig'] = reward_cat2 + reward_cat1
-                        e['deny_reason'] = 'Eligible for Reward (C2) ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ' (limit ' + str(limit_cat2) + ')'
+                        e['deny_reason'] = 'Eligible for Reward, ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ' (C2, limit ' + str(limit_cat2) + ')'
                     else:
                         e['eligible'] = 1
                         e['reward_elig'] = reward_cat3 + reward_cat2 + reward_cat1
-                        e['deny_reason'] = 'Eligible for Reward (C3) ' + str(reward_cat3) + ' + ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ' (limit ' + str(limit_cat3) + ')'
+                        e['deny_reason'] = 'Eligible for Reward, ' + str(reward_cat3) + ' + ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ' (C3, limit ' + str(limit_cat3) + ')'
 
     # Save result
     for e in daynodes:

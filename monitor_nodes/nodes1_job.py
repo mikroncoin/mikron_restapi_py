@@ -1,5 +1,6 @@
 import db
 import balance
+import config
 
 import logging
 import time
@@ -10,8 +11,7 @@ import json
 # monitor (retrieve and save) nodes
 # job delay in sec
 delay = 120
-obs_1_srv = "http://server2.mikron.io:8226"
-obs_1_firewall = 0
+config = config.readConfig()
 logging.basicConfig(level=logging.INFO)
 
 def get_logger():
@@ -31,8 +31,9 @@ def parse_endpoint(endpoint):
     return (endpoint[:colon_idx], endpoint[colon_idx+1:])
 
 def nodes_one():
+    global config
     session = requests.Session()
-    save_nodes(session, obs_1_srv, obs_1_firewall)
+    save_nodes(session, config['monitor_nodes.observer.1.url'], config['monitor_nodes.observer.1.firewall'])
 
 def save_node(time, obs_srv, obs_firewall, host, port, account, balance):
     db.save_node(time, obs_srv, obs_firewall, host, port, account, balance)

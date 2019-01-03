@@ -1,5 +1,7 @@
 import evaluate
+import payout
 import db
+import config
 
 import logging
 import time
@@ -11,6 +13,7 @@ import json
 # After the end of every 10 minute period, after 1 minute run evaluation of the last 2+ slots
 # After the end of every 4-hours, reevaluate the last 1+ days
 
+config = config.readConfig()
 logging.basicConfig(level=logging.INFO)
 
 evaluate_period_last_started = 100000
@@ -23,6 +26,7 @@ def get_logger():
     return logging.getLogger(__name__)
 
 def start_job():
+    global config
     time.sleep(30)
     get_logger().info('Started')
     global evaluate_period_last_started
@@ -38,8 +42,9 @@ def start_job():
             #get_logger('nodes2_job', 'Check', remainder_10min, now)
             if (now - evaluate_period_last_started) >= 300:
                 # evaluate period now
-                get_logger().info('Do evaluate_periods ' + str(remainder_10min) + ' ' + str(now))
-                start_time = evaluate_period_last_started
+                earliest_start_time = now - 7 * 24* 3600
+                start_time = max(earliest_start_time, evaluate_period_last_started)
+                get_logger().info('Do evaluate_periods ' + str(remainder_10min) + ' ' + str(now) + ' ' + str(start_time))
                 evaluate_period_last_started = now
                 evaluate.evaluate_periods(start_time, ten_minute)
                 now = int(time.time())
@@ -48,13 +53,19 @@ def start_job():
 
                 if (now - evaluate_daily_last_started) >= 4*3600:
                     # evaluate days now
-                    get_logger().info('Do evaluate_days ' + str(now))
-                    start_time = evaluate_daily_last_started
+                    earliest_start_time = now - 7 * 24* 3600
+                    start_time = max(earliest_start_time, evaluate_daily_last_started)
+                    get_logger().info('Do evaluate_days ' + str(now) + ' ' + str(start_time))
                     evaluate_daily_last_started = now
                     evaluate.evaluate_days(start_time)
                     now = int(time.time())
                     evaluate_daily_last_finished = now
                     get_logger().info('Done evaluate_days ' + str(now))
+
+                    time.sleep(5)
+                    get_logger().info('Do Payouts ' + str(now))
+                    payout.do_payout(start_time, config)
+                    get_logger().info('Done Payouts ' + str(now))
         time.sleep(30)
     get_logger().info('Stopping')
     
