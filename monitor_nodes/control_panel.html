@@ -16,8 +16,13 @@ function load_all_periods() {
 }
 
 var hide_zero_balance = true;
+var hide_nonelig = false;
 
 function hide_0_bal_change() {
+    load_all_daily();
+}
+
+function hide_nonelig_change() {
     load_all_daily();
 }
 
@@ -42,7 +47,8 @@ function get_daily_last3() {
 
 function load_daily(dd) {
     hide_zero_balance = document.getElementById('hide_0_bal').checked;
-    //console.log('hide_zero_balance ' + hide_zero_balance);
+    hide_nonelig = document.getElementById('hide_nonelig').checked;
+    //console.log('hide ' + hide_zero_balance + ' ' + hide_nonelig);
     let t = "<table>";
     t += daily_header();
     dd.forEach(e => {
@@ -54,13 +60,17 @@ function load_daily(dd) {
 
 function load_day(e) {
     var avg_bal = parseFloat(e['avg_bal']);
+    var eligible = parseInt(e['eligible']);
     if (hide_zero_balance)
         if (avg_bal == 0)
+            return '';
+    if (hide_nonelig)
+        if (eligible == 0)
             return '';
     var time_start = e['time_start'];
     var time = new Date(time_start * 1000).toLocaleDateString();
     return "<tr><td>" + time + "</td><td>" + e['ip'] + ":" + e['port'] +
-        "</td><td>" + e['eligible'] + "</td><td>" + e['count_pos'] + " / " + e['count_neg'] + "</td><td>" + avg_bal + "</td><td>" + e['account'].substring(0, 15) + "...</td><td>" + e['reward_sent'] + "</td><td>" + e['reward_elig'] + "</td><td>" + e['deny_reason'] + "</td><td>" + e['sent_time'] + "</td><td>" + e['sent_hash'].substring(0, 15) + "...</td></tr>";
+        "</td><td>" + eligible + "</td><td>" + e['count_pos'] + " / " + e['count_neg'] + "</td><td>" + avg_bal + "</td><td>" + e['account'].substring(0, 15) + "...</td><td>" + e['reward_sent'] + "</td><td>" + e['reward_elig'] + "</td><td>" + e['deny_reason'] + "</td><td>" + e['sent_time'] + "</td><td>" + e['sent_hash'].substring(0, 15) + "...</td></tr>";
 }
 
 function refresh_period() {
@@ -124,7 +134,10 @@ function period_header() {
         
         <div>
             <h2>Daily Summary</h2>
-            <div><input type="checkbox" id="hide_0_bal" checked onclick="hide_0_bal_change()">Hide zero balances</checkbox></div>
+            <div>
+                <input type="checkbox" id="hide_0_bal" checked onclick="hide_0_bal_change()">Hide zero balances</checkbox>
+                <input type="checkbox" id="hide_nonelig" onclick="hide_nonelig_change()">Hide non-eligibles</checkbox>
+            </div>
             <div id="d_daily">
             </div>
         </div>
