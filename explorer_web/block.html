@@ -1,0 +1,126 @@
+<html>
+    <head>
+        <meta charset="UTF-8"/>
+        <script>
+var block_hash = "{{HASH_PLACEHOLDER}}";
+
+function load() {
+    document.getElementById("lb_hash").innerText = "?";
+    document.getElementById("lb_hash_short").innerText = "?";
+    document.getElementById("lb_acc").innerText = "?";
+    document.getElementById("lb_type").innerText = "?";
+    document.getElementById("lb_prev").innerText = "?";
+
+    getBlock(block_hash);
+
+    load_header();
+}
+
+function load_header() {
+    //document.getElementById('nodes_count').innerText = '?';
+    callGetUrl('/peers/count', (text) => document.getElementById('nodes_count').innerText = 1 + Number(text));
+    //document.getElementById('block_count').innerText = '?';
+    callGetUrl('/blocks/count', (text) => document.getElementById('block_count').innerText = text);
+    //document.getElementById('frontier_count').innerText = '?';
+    callGetUrl('/frontiers/count', (text) => document.getElementById('frontier_count').innerText = text);
+}
+
+function callGetUrl(url, callback) {
+    //console.log('url ' + url);
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function() {
+        if (http.readyState == XMLHttpRequest.DONE) {
+            if (http.status == 200) {
+                callback(http.responseText);
+            }
+            else if (http.status == 400) {
+                console.log('There was an error 400 ' + url);
+            }
+            else {
+                console.log('Something else other than 200 was returned ' + http.status + ' ' + url);
+            }
+        }
+    };
+    http.open("GET", url, true);
+    http.send();
+}
+
+function getBlock(block_hash) {
+    var url = /*serviceBaseUrl + */"/block/" + block_hash;
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function() {
+        if (http.readyState == XMLHttpRequest.DONE) {
+            if (http.status == 200) {
+                loadBlock(http.response)
+            }
+            else if (http.status == 400) {
+                console.log('There was an error 400 ' + url);
+            }
+            else {
+                console.log('Something else other than 200 was returned ' + http.status + ' ' + url);
+            }
+        }
+    };
+    http.open("GET", url, true);
+    http.send();
+}
+
+function loadBlock(block_raw) {
+    block_json = JSON.parse(block_raw);
+    if (block_json.error != undefined) {
+        console.log(block_json.error);
+        document.getElementById("lb_hash_short").innerText = "Not found!";
+        return;
+    }
+    document.getElementById("lb_hash").innerText = block_hash;
+    document.getElementById("lb_hash_short").innerText = block_hash.substring(0, 10) + '...';
+    //console.log(block_json);
+    account = block_json.account;
+    document.getElementById("lb_acc").innerHTML = "<a href='/explorer/account/" + account + "'>" + account + "</a>";
+    //console.log(block_json.type);
+    document.getElementById("lb_type").innerHTML = "<b>" + block_json.type + "</b>";
+    document.getElementById("lb_bal").innerHTML = "<b>" + block_json.balance + " MIK</b>";
+    document.getElementById("lb_date").innerText = block_json.creation_time_as_date;
+    document.getElementById("lb_link_acc").innerHTML = "<a href='/explorer/account/" + block_json.link_as_account + "'>" + block_json.link_as_account + "</a>";
+    document.getElementById("lb_link_hash").innerHTML = "<a href='/explorer/block/" + block_json.link + "'>" + block_json.link + "</a>";
+    document.getElementById("lb_prev").innerHTML = "<a href='/explorer/block/" + block_json.previous + "'>" + block_json.previous + "</a>";
+    document.getElementById("lb_repr").innerHTML = "<a href='/explorer/account/" + block_json.representative + "'>" + block_json.representative + "</a>";
+    document.getElementById("lb_work").innerText = block_json.work;
+}
+        </script>
+    </head>
+    <body onload="load()">
+        <div>
+            <a href="/explorer/">Mikron Explorer</a>
+            |
+            blocks: <b><label id='block_count'></label></b>
+            frontiers: <b><label id='frontier_count'></label></b>
+            nodes: <b><label id='nodes_count'></label></b>
+        </div>
+        <div>
+            <h2>Block <label id="lb_hash_short"></label></h2>
+            Hash: <label id="lb_hash"></label>
+            <p/>
+            Type: <label id="lb_type"></label>
+            <p/>
+            Account: <label id="lb_acc"></label>
+            <p/>
+            Balance: <label id="lb_bal"></label>
+            <p/>
+            Date: <label id="lb_date"></label>
+            <p/>
+            Receive from (link as hash): <label id="lb_link_hash"></label>
+            <p/>
+            Send to (link as account): <label id="lb_link_acc"></label>
+            <p/>
+            Previous: <label id="lb_prev"></label>
+            <p/>
+            Representative: <label id="lb_repr"></label>
+            <p/>
+            Work: <label id="lb_work"></label>
+        </div>
+        <div>
+            <button onclick="load()">Refresh</button>
+        </div>
+    </body>
+</html>

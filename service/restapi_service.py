@@ -58,6 +58,13 @@ def getAccountHistory(account_id):
     setHeaders()
     return history
 
+# Example: curl http://localhost:8090/block/8884FF53AE28F1DD5499F78733FC1A075864FFC428CEEC9A9C8A4ECCA98BB134
+@route('/block/<block_hash>', method='GET')
+def getBlock(block_hash):
+    block = node_rpc_helper.getBlock(block_hash)
+    setHeaders()
+    return block
+
 @route('/peers/count', method='GET')
 def getPeerCount():
     count = '0'

@@ -2,8 +2,8 @@ from bottle import post, request, response, get, route, static_file
 
 serviceBaseUrl = 'http://server2.mikron.io:8080';
 
-def replaceServiceUrl(file):
-    return file.replace('{{SERVICE_URL_PLACEHOLDER}}', serviceBaseUrl)
+#def replaceServiceUrl(file):
+#    return file.replace('{{SERVICE_URL_PLACEHOLDER}}', serviceBaseUrl)
 
 @route('/explorer/', method='GET')
 @route('/explorer', method='GET')
@@ -17,7 +17,16 @@ def get_file_index():
 def get_account(account):
     f = open('explorer_web/account.html', 'r').read()
     #f = replaceServiceUrl(f)
+    # TODO use query param instead of replace-in-file
     f = f.replace('{{ACCOUNT_PLACEHOLDER}}', account)
+    return f
+
+@route('/explorer/block/<block_hash>', method='GET')
+def get_block(block_hash):
+    f = open('explorer_web/block.html', 'r').read()
+    #f = replaceServiceUrl(f)
+    # TODO use query param instead of replace-in-file
+    f = f.replace('{{HASH_PLACEHOLDER}}', block_hash)
     return f
 
 @route('/explorer/<filename>', method='GET')

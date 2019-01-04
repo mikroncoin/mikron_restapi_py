@@ -129,6 +129,29 @@ def getAccountHistory(accId, count):
             h['balance'] = balMik
     return history
 
+def getBlock(block_hash):
+    global rai
+    try:	
+        #print("getBlock ", block_hash)
+        block = rai.block({"hash": block_hash})
+    except:
+        return {"error": "exception"}
+    try:
+        if block is None:
+            return {"error": "empty response"}
+        if 'error' in block:
+            return {"error": block['error']}
+        if 'contents' not in block:
+            return {"error": "Missing contents"}
+    except:
+        return {"error": "error"}
+    # Unit conversions
+    bc = json.loads(block['contents'])
+    if 'balance' in bc:
+        balMik = account_helper.fromRawToMikron(bc['balance'])
+        bc['balance'] = balMik
+    return bc
+
 def getPeers():
     global rai
     try:

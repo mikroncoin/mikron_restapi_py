@@ -8,7 +8,7 @@ var account = "{{ACCOUNT_PLACEHOLDER}}";
 
 function load() {
     document.getElementById("lb_acc").innerText = account;
-    document.getElementById("lb_acc_short").innerText = account.substring(0, 15);
+    document.getElementById("lb_acc_short").innerText = account.substring(0, 15) + '...';
     document.getElementById("lb_balance").innerText = "?";
     document.getElementById("d_transactions").innerHTML = "<table>" + historyHeader() + "<tr><td colspan='6'>(loading history)</td></tr></table>"
 
@@ -78,8 +78,9 @@ function loadHistoryRow(history_row) {
     hist_html += "<td><b>" + (type == "send" ? "-" : "+") + history_row['amount'] + "</b></td>";
     hist_html += "<td>" + history_row['balance'] + "</td>";
     party = history_row['account'];
-    hist_html += "<td><a href='/explorer/account/" + party + "'>" + party.substring(0, 15) + "</a></td>";
-    hist_html += "<td>" + history_row['hash'].substring(0, 10) + "</td>";
+    hist_html += "<td><a href='/explorer/account/" + party + "'>" + party.substring(0, 15) + "...</a></td>";
+    hash = history_row['hash'];
+    hist_html += "<td><a href='/explorer/block/" + hash + "'>" + hash.substring(0, 10) + "... </a></td>";
     hist_html += "</tr>";
     return hist_html;
 }
@@ -133,5 +134,5 @@ function loadHistory(history_raw) {
         <div>
             <button onclick="load()">Refresh</button>
         </div>
-</body>
+    </body>
 </html>

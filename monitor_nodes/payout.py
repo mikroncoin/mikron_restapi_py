@@ -60,7 +60,7 @@ def do_payout(time_start, config):
     to_pay = db.get_daily_filter_topay_time(time_start)
     get_logger().info('Found ' + str(len(to_pay)) + ' rewards to pay out')
     for n in to_pay:
-        get_logger().info('reward elig/sent: ' + str(n['reward_elig']) + ' ' + str(n['reward_sent']) + ' ' + str(n))
+        get_logger().info('reward elig/sent: ' + str(n['reward_elig']) + ' / ' + str(n['reward_sent']) + ' ' + str(n))
     
     # Perform payouts
     cnt = 0
