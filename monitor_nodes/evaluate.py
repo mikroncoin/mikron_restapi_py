@@ -377,7 +377,7 @@ def dump_aggregated_daily(time_start_rel_day):
         ip = e['ip']
         eligible = int(e['eligible'])
         if eligible != 0:
-            print('  ', date_time_start.isoformat(), ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['count_nonempty'], e['avg_bal'], e['port'], e['account'], e['reward_elig'], e['reward_sent'], e['sent_time'], e['sent_hash'])
+            print('  ', date_time_start.isoformat(), time_start, ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['count_nonempty'], e['avg_bal'], e['port'], e['account'], e['reward_elig'], e['reward_sent'], e['sent_time'], e['sent_hash'])
     print('Non-eligible nodes:')
     for e in ret:
         time_start = int(e['time_start'])
@@ -385,7 +385,7 @@ def dump_aggregated_daily(time_start_rel_day):
         ip = e['ip']
         eligible = int(e['eligible'])
         if eligible == 0:
-            print('  ', date_time_start.isoformat(), ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['count_nonempty'], e['avg_bal'], e['port'], e['account'], e['reward_elig'], e['reward_sent'], e['sent_time'], e['sent_hash'])
+            print('  ', date_time_start.isoformat(), time_start, ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['count_nonempty'], e['avg_bal'], e['port'], e['account'], e['reward_elig'], e['reward_sent'], e['sent_time'], e['sent_hash'])
 
 # Reevaluate daily data
 def regen_aggregated_daily(time_start_rel_day, reeval_periods = False):
