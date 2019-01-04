@@ -225,6 +225,22 @@ def get_daily_filter_topay_time(time_start):
     close(conn)
     return ret
 
+# Get the latest node for which a send was already made
+def get_daily_latest_sent_time():
+    c, conn = connect(get_db_name_nodecompute())
+    sql_command = "SELECT MAX(time_start) AS max FROM nodedaily WHERE reward_sent != '' ;"
+    c.execute(sql_command)
+    ret = c.fetchall()
+    close(conn)
+    #print(ret)
+    if len(ret) < 1:
+        return 0
+    if 'max' not in ret[0]:
+        return 0
+    if ret[0]['max'] is None:
+        return 0
+    return ret[0]['max']
+
 def add_daily(time_start, time_end, ip, port, account, count_pos, count_neg, count_nonempty, avg_bal):
     c, conn = connect(get_db_name_nodecompute())
     sql_command = "INSERT INTO nodedaily VALUES ("+\

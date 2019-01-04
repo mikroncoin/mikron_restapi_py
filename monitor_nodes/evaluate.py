@@ -118,7 +118,7 @@ def __evaluate_daily(time_start):
     for e in daynodes:
         time_start = int(e['time_start'])
         time_end = int(e['time_end'])
-        date_time_start = datetime.datetime.utcfromtimestamp(time_start)
+        #date_time_start = datetime.datetime.utcfromtimestamp(time_start)
         ip = e['ip']
         count_pos = int(e['count_pos'])
         count_neg = int(e['count_neg'])
@@ -199,6 +199,8 @@ def __evaluate_daily(time_start):
     # Evaluate reserve criteria (balance)
     for e in daynodes:
         if e['eligible'] > 0:
+            time_start = int(e['time_start'])
+            time_start_as_date = datetime.datetime.utcfromtimestamp(time_start).date().isoformat()
             avg_bal = float(e['avg_bal'])
             if avg_bal < limit_cat1:
                 e['eligible'] = 0
@@ -207,16 +209,16 @@ def __evaluate_daily(time_start):
                 if avg_bal < limit_cat2:
                     e['eligible'] = 1
                     e['reward_elig'] = reward_cat1
-                    e['deny_reason'] = 'Eligible for Reward, ' + str(reward_cat1) + ' (C1, limit ' + str(limit_cat1) + ')'
+                    e['deny_reason'] = 'Eligible for Reward ' + str(reward_cat1) + ', for ' + str(time_start_as_date) + ' (C1, limit ' + str(limit_cat1) + ')'
                 else:
                     if avg_bal < limit_cat3:
                         e['eligible'] = 1
                         e['reward_elig'] = reward_cat2 + reward_cat1
-                        e['deny_reason'] = 'Eligible for Reward, ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ' (C2, limit ' + str(limit_cat2) + ')'
+                        e['deny_reason'] = 'Eligible for Reward ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ', for ' + str(time_start_as_date) + ' (C2, limit ' + str(limit_cat2) + ')'
                     else:
                         e['eligible'] = 1
                         e['reward_elig'] = reward_cat3 + reward_cat2 + reward_cat1
-                        e['deny_reason'] = 'Eligible for Reward, ' + str(reward_cat3) + ' + ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ' (C3, limit ' + str(limit_cat3) + ')'
+                        e['deny_reason'] = 'Eligible for Reward ' + str(reward_cat3) + ' + ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ', for ' + str(time_start_as_date) + ' (C3, limit ' + str(limit_cat3) + ')'
 
     # Save result
     for e in daynodes:
@@ -230,18 +232,28 @@ def evaluate_days(time_start):
         return
     start_evaluate_days()
 
-    # TODO do not evaluate period for which payment has already made!
+    # Time range from periods
     minmax = db.get_min_max_time_raw()
     #print(minmax)
     min = int(float(minmax[0]['min']))
     if time_start > min:
         min = time_start
     max = int(float(minmax[0]['max']))
+    
     period_day = 24 * 3600
     min_adj = int(min / period_day) * period_day
     max_adj = int(max / period_day) * period_day
+
+    # Do not evaluate period for which payment has already made, get latest sent time
+    latest_sent_time = db.get_daily_latest_sent_time()
+    #print('latest_sent_time', latest_sent_time)
+    if latest_sent_time != 0:
+        if min_adj <= latest_sent_time:
+            min_adj = int(latest_sent_time / period_day) * period_day + 1
+            get_logger().info('Adjusted min_adj to ' + str(min_adj) + ' due to latest_sent_time ' + str(latest_sent_time))
+
     count = int((max_adj-min_adj)/period_day) + 1
-    print('Time range:', min_adj, '--', max_adj + period_day - 1, 'count', count, 'unadjusted', min, '-', max, max-min)
+    get_logger().info('Time range: ' + str(min_adj) + ' -- ' + str(max_adj) + ' ' + str(period_day - 1) + ' count ' + str(count) + ' unadjusted ' + str(min) + ' - ' + str(max) + ' ' + str(max-min))
 
     db.delete_daily_filter_time(min_adj)
 
@@ -250,7 +262,7 @@ def evaluate_days(time_start):
     for i in range(0, count):
         day_start = min_adj + i * period_day
         day_end = day_start + period_day
-        print('Day', day_start, datetime.datetime.utcfromtimestamp(day_start).isoformat())
+        get_logger().info('Day ' + str(day_start) + ' ' + str(datetime.datetime.utcfromtimestamp(day_start).isoformat()))
 
         # Phase 2a  Check each 10-minute period within the day -- if there are any with 0 measurements, those will be ignored (not counted as negative)
         # Also collect IPs in the day, and the first port and account associated to it
@@ -286,7 +298,7 @@ def evaluate_days(time_start):
                     }
         #print('.')
         period_cnt_empty = periods_per_day - period_cnt_nonempty
-        print('Non-empty periods:', period_cnt_nonempty, 'empty periods', period_cnt_empty, '(of', periods_per_day, ')')
+        get_logger().info('Non-empty periods: ' + str(period_cnt_nonempty) + ' empty periods ' + str(period_cnt_empty) + ' (of ' + str(periods_per_day) + ')')
         # Print IPs
         #print('IPs found:')
         #for ip in node_dict:

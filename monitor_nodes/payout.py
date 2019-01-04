@@ -56,7 +56,7 @@ def do_payout(time_start, config):
     account_id = config['monitor_nodes.sendout.account_id']
     account_password = config['monitor_nodes.sendout.account_password']
     my_url = 'http://' + config['monitor_nodes.host'] + ':' + str(config['monitor_nodes.port'])
-    get_logger().info('Doing Payouts ' + str(now) + ' ' str(now-time_start) + ' ' + account_id + ' ' + sendout_url + ' ')
+    get_logger().info('Doing Payouts ' + str(now) + ' ' + str(now-time_start) + ' ' + account_id + ' ' + sendout_url + ' ')
     to_pay = db.get_daily_filter_topay_time(time_start)
     get_logger().info('Found ' + str(len(to_pay)) + ' rewards to pay out')
     for n in to_pay:
