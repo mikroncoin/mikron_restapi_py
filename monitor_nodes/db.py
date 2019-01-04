@@ -193,7 +193,8 @@ def get_nodes_period_filter_time(start, end):
 
 def delete_daily_filter_time(time_start):
     c, conn = connect(get_db_name_nodecompute())
-    sql_command = "DELETE FROM nodedaily WHERE time_start >= " + str(time_start) + ";"
+    # Do not delete nodes for which payment has already made!
+    sql_command = "DELETE FROM nodedaily WHERE time_start >= " + str(time_start) + " AND reward_sent='';"
     #print(sql_command)
     c.execute(sql_command)
     ret = c.fetchall()
