@@ -239,7 +239,7 @@ def evaluate_days(time_start):
     if time_start > min:
         min = time_start
     max = int(float(minmax[0]['max']))
-    
+
     period_day = 24 * 3600
     min_adj = int(min / period_day) * period_day
     max_adj = int(max / period_day) * period_day
@@ -249,7 +249,8 @@ def evaluate_days(time_start):
     #print('latest_sent_time', latest_sent_time)
     if latest_sent_time != 0:
         if min_adj <= latest_sent_time:
-            min_adj = int(latest_sent_time / period_day) * period_day + 1
+            # go to next day!
+            min_adj = int(latest_sent_time / period_day + 1) * period_day
             get_logger().info('Adjusted min_adj to ' + str(min_adj) + ' due to latest_sent_time ' + str(latest_sent_time))
 
     count = int((max_adj-min_adj)/period_day) + 1
