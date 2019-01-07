@@ -42,7 +42,7 @@ def getRewards3():
                 'count_pos': n['count_pos'],
                 'count_neg': n['count_neg'],
                 'count_nonempty': n['count_nonempty'],
-                'avg_bal': n['avg_bal'],
+                'avg_bal': 0.001 * int(1000 * float(n['avg_bal'])),
                 'eligible': n['eligible'],
                 'deny_reason': n['deny_reason'],
                 'reward_elig': n['reward_elig'],
@@ -77,7 +77,7 @@ def getPeriods6():
                 'port': n['port'],
                 'count': n['count'],
                 'account': n['account'],
-                'avg_bal': n['avg_bal'],
+                'avg_bal': 0.001 * int(1000 * float(n['avg_bal'])),
             })
     except:
         ret = ['ERROR']
