@@ -42,7 +42,7 @@ def start_job():
             #get_logger('nodes2_job', 'Check', remainder_10min, now)
             if (now - evaluate_period_last_started) >= 300:
                 # evaluate period now
-                earliest_start_time = now - 4 * 24* 3600
+                earliest_start_time = now - 4 * 24 * 3600
                 start_time = max(earliest_start_time, evaluate_period_last_started)
                 get_logger().info('Do evaluate_periods ' + str(remainder_10min) + ' ' + str(now) + ' ' + str(start_time))
                 evaluate_period_last_started = now
@@ -51,7 +51,7 @@ def start_job():
                 evaluate_period_last_finished = now
                 get_logger().info('Done evaluate_periods ' + str(now))
 
-                if (now - evaluate_daily_last_started) >= 4*3600:
+                if (now - evaluate_daily_last_started) >= 2*3600:
                     # evaluate days now
                     earliest_start_time = now - 4 * 24 * 3600
                     start_time = max(earliest_start_time, evaluate_daily_last_started)
