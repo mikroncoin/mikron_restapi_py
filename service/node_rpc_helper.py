@@ -167,6 +167,21 @@ def getPeers():
         return 'ERROR'
     return peers['peers']
 
+def getFrontiers(count):
+    global rai
+    try:
+        frontiers = rai.frontiers({"account": "mik_1111111111111111111111111111111111111111111111111111hifc8npp", "count": count})
+        #print(frontiers)
+        if frontiers is None:
+            return 'ERROR'
+        if 'error' in frontiers:
+            return 'ERROR: ' + frontiers['error']
+        if 'frontiers' not in frontiers:
+            return 'ERROR'
+    except:
+        return 'ERROR'
+    return frontiers['frontiers']
+
 def doSend(src_walletid, src_account, dest_account, amount, unique_id):
     global rai
     try:

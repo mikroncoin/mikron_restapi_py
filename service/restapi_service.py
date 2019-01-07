@@ -43,6 +43,13 @@ def getFrontierCount():
     setHeaders()
     return count
 
+@route('/frontiers/last/<count>', method='GET')
+def getFrontiers(count):
+    count = min(50, int(count))
+    frontiers = node_rpc_helper.getFrontiers(count)
+    setHeaders()
+    return frontiers
+
 # Example: curl http://localhost:8090/account/balance/mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs
 @route('/account/balance/<account_id>', method='GET')
 def getAccountBalance(account_id):
