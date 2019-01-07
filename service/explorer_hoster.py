@@ -1,33 +1,29 @@
-from bottle import post, request, response, get, route, static_file
+from bottle import post, request, response, get, route, static_file, redirect
 
 serviceBaseUrl = 'http://server2.mikron.io:8080';
-
-#def replaceServiceUrl(file):
-#    return file.replace('{{SERVICE_URL_PLACEHOLDER}}', serviceBaseUrl)
 
 @route('/explorer/', method='GET')
 @route('/explorer', method='GET')
 def get_file_index():
     return static_file('index.html', root='explorer_web/')
-    #f = open('explorer_web/index.html', 'r').read()
-    #f = replaceServiceUrl(f)
-    #return f
+
+@route('/explorer/account', method='GET')
+def get_account():
+    return static_file('account.html', root='explorer_web/')
 
 @route('/explorer/account/<account>', method='GET')
 def get_account(account):
-    f = open('explorer_web/account.html', 'r').read()
-    #f = replaceServiceUrl(f)
-    # TODO use query param instead of replace-in-file
-    f = f.replace('{{ACCOUNT_PLACEHOLDER}}', account)
-    return f
+    newurl = '/explorer/account?a=' + account;
+    return redirect(newurl)
+
+@route('/explorer/block', method='GET')
+def get_block():
+    return static_file('block.html', root='explorer_web/')
 
 @route('/explorer/block/<block_hash>', method='GET')
 def get_block(block_hash):
-    f = open('explorer_web/block.html', 'r').read()
-    #f = replaceServiceUrl(f)
-    # TODO use query param instead of replace-in-file
-    f = f.replace('{{HASH_PLACEHOLDER}}', block_hash)
-    return f
+    newurl = '/explorer/block?bh=' + block_hash;
+    return redirect(newurl)
 
 @route('/explorer/<filename>', method='GET')
 def get_file(filename):

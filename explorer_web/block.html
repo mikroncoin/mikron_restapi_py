@@ -2,9 +2,8 @@
     <head>
         <meta charset="UTF-8"/>
         <script>
-var block_hash = "{{HASH_PLACEHOLDER}}";
-
 function load() {
+    getQueryInputParam();
     document.getElementById("lb_hash").innerText = "?";
     document.getElementById("lb_hash_short").innerText = "?";
     document.getElementById("lb_acc").innerText = "?";
@@ -14,6 +13,15 @@ function load() {
     getBlock(block_hash);
 
     load_header();
+}
+
+function getQueryInputParam() {
+    // obtain query input param ?bh=
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('bh')) {
+        block_hash = urlParams.get('bh');
+        //console.log('block_hash: ' + block_hash);
+    }
 }
 
 function load_header() {

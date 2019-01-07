@@ -2,11 +2,8 @@
     <head>
         <meta charset="UTF-8"/>
         <script>
-//// REST service base URL, such as 'http://server2.mikron.io:8080'
-//var serviceBaseUrl = "{{SERVICE_URL_PLACEHOLDER}}";
-var account = "{{ACCOUNT_PLACEHOLDER}}";
-
 function load() {
+    getQueryInputParam();
     document.getElementById("lb_acc").innerText = account;
     document.getElementById("lb_acc_short").innerText = account.substring(0, 15) + '...';
     document.getElementById("lb_balance").innerText = "?";
@@ -16,6 +13,15 @@ function load() {
     getHistory(account);
 
     load_header();
+}
+
+function getQueryInputParam() {
+    // obtain query input param ?a=
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('a')) {
+        account = urlParams.get('a');
+        //console.log('account: ' + account);
+    }
 }
 
 function load_header() {
