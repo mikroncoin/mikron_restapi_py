@@ -17,6 +17,7 @@ function load_all_periods() {
 
 var hide_zero_balance = true;
 var hide_nonelig = false;
+var hide_zero_balance_per = false;
 
 function hide_0_bal_change() {
     load_all_daily();
@@ -24,6 +25,10 @@ function hide_0_bal_change() {
 
 function hide_nonelig_change() {
     load_all_daily();
+}
+
+function hide_0_bal_per_change() {
+    load_all_periods();
 }
 
 function get_daily_last3() {
@@ -104,6 +109,7 @@ function get_period_last6() {
 }
 
 function load_periods(dd) {
+    hide_zero_balance_per = document.getElementById('hide_0_bal_per').checked;
     let t = "<table>";
     t += period_header();
     dd.forEach(e => {
@@ -115,9 +121,13 @@ function load_periods(dd) {
 
 function load_period(e) {
     var time_start = e['time_start'];
+    var avg_bal = parseFloat(e['avg_bal']);
+    if (hide_zero_balance_per)
+        if (avg_bal == 0)
+            return '';
     var time = new Date(time_start * 1000).toLocaleString();
     return "<tr><td>" + time + "</td><td>" + e['ip'] + ":" + e['port'] + "</td><td>" +
-        + e['avg_bal'] + "</td><td>" + e['account'].substring(0, 15) + "...</td></tr>";
+        + avg_bal + "</td><td>" + e['account'].substring(0, 15) + "...</td></tr>";
 }
 
 function period_header() {
@@ -144,6 +154,9 @@ function period_header() {
 
         <div>
             <h2>10-minute-period Summary</h2>
+            <div>
+                <input type="checkbox" id="hide_0_bal_per" onclick="hide_0_bal_per_change()">Hide zero balances</checkbox>
+            </div>
             <div id="d_period">
             </div>
         </div>
