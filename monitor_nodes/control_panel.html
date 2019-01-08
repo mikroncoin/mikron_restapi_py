@@ -40,6 +40,7 @@ function get_daily_last3() {
                 daily_res = JSON.parse(http.response);
                 //console.log(daily_res);
                 load_daily(daily_res)
+                count_nodes(daily_res)
             }
             else {
                 console.log('Something else other than 200 was returned ' + http.status + ' ' + url);
@@ -61,6 +62,36 @@ function load_daily(dd) {
     });
     t += "</table>";
     document.getElementById("d_daily").innerHTML = t;
+}
+
+function count_nodes(dd) {
+    var level1_nodes = { }
+    var level2_nodes = { }
+    var level3_nodes = { }
+    for (d in dd) {
+        var n = dd[d];
+        var elig = parseInt(n['eligible']);
+        ip = n['ip'];
+        console.log(elig);
+        if (elig == 1) {
+            if (!(ip in level1_nodes)) {
+                level1_nodes[ip] = 1;
+            }
+        } else if (elig == 2) {
+            if (!(ip in level2_nodes)) {
+                level2_nodes[ip] = 1;
+            }
+        } else if (elig == 3) {
+            if (!(ip in level3_nodes)) {
+                level3_nodes[ip] = 1;
+            }
+        }
+    }
+    var count1 = Object.keys(level1_nodes).length;
+    var count2 = Object.keys(level2_nodes).length;
+    var count3 = Object.keys(level3_nodes).length;
+    console.log('Node Counts (level 1, 2, 3): ' + count1 + ' ' + count2 + ' ' + count3);
+    document.getElementById("node_counts").innerHTML = "Level1: " + count1 + " Level2: " + count2 + " Level3: " + count3;
 }
 
 function load_day(e) {
@@ -142,6 +173,12 @@ function period_header() {
             <h2>TODO: filter by IP/account</h2>
         </div>
         
+        <div>
+            <h2>Node Counts</h2>
+            <div id="node_counts">?</div>
+            </div>
+        </div>
+
         <div>
             <h2>Daily Summary</h2>
             <div>
