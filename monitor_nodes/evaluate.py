@@ -212,11 +212,11 @@ def __evaluate_daily(time_start):
                     e['deny_reason'] = 'Eligible for Reward ' + str(reward_cat1) + ', for ' + str(time_start_as_date) + ' (C1, limit ' + str(limit_cat1) + ')'
                 else:
                     if avg_bal < limit_cat3:
-                        e['eligible'] = 1
+                        e['eligible'] = 2
                         e['reward_elig'] = reward_cat2 + reward_cat1
                         e['deny_reason'] = 'Eligible for Reward ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ', for ' + str(time_start_as_date) + ' (C2, limit ' + str(limit_cat2) + ')'
                     else:
-                        e['eligible'] = 1
+                        e['eligible'] = 3
                         e['reward_elig'] = reward_cat3 + reward_cat2 + reward_cat1
                         e['deny_reason'] = 'Eligible for Reward ' + str(reward_cat3) + ' + ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ', for ' + str(time_start_as_date) + ' (C3, limit ' + str(limit_cat3) + ')'
 
