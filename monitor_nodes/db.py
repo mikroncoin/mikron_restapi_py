@@ -209,6 +209,14 @@ def get_all_daily_sorted_filter_time(time_start):
     close(conn)
     return ret
 
+def get_all_daily_sorted_filter_time_rev(time_start):
+    c, conn = connect(get_db_name_nodecompute())
+    sql_command = "SELECT * FROM nodedaily WHERE time_start >= " + str(time_start) + " ORDER BY time_start DESC, ip ASC;"
+    c.execute(sql_command)
+    ret = c.fetchall()
+    close(conn)
+    return ret
+
 def get_daily_sorted_filter_elig_time(time_start):
     c, conn = connect(get_db_name_nodecompute())
     sql_command = "SELECT * FROM nodedaily WHERE eligible > 0 AND time_start >= " + str(time_start) + " ORDER BY time_start ASC, ip ASC;"

@@ -381,7 +381,7 @@ def dump_aggregated_daily(time_start_rel_day):
     time_start0 = now - time_start_rel_day * 24 * 3600
     #print(time_start0)
 
-    ret = db.get_all_daily_sorted_filter_time(time_start0 - 24 * 3600)
+    ret = db.get_all_daily_sorted_filter_time_rev(time_start0 - 24 * 3600)
     print('Retrieved', len(ret), 'daily records')
     print('Eligible nodes:')
     for e in ret:

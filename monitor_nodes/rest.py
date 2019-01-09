@@ -26,7 +26,7 @@ def getRewards3():
     start0 = int(time.time()) - 3 * period_day
     start = int(start0 / period_day) * period_day
 
-    nodes = db.get_all_daily_sorted_filter_time(start)
+    nodes = db.get_all_daily_sorted_filter_time_rev(start)
     ret = []
     try:
         for n in nodes:
