@@ -358,11 +358,7 @@ def dump_raw():
         print(int(n['time_sec']), n['ip'], n['port'], n['balance'], n['account'], sep=', ')
 
 # Print aggregated data, by periods
-def regen_and_dump_aggregated_period(time_start_rel_day, period):
-    now = int(time.time())
-    time_start0 = now - 24 * 3600 * time_start_rel_day
-    #print(time_start0)
-    evaluate_periods(time_start0, period)
+def dump_aggregated_period():
     ret = db.get_all_period_sorted()
     print('Retrieved', len(ret), 'period records')
     for e in ret:
@@ -374,6 +370,18 @@ def regen_and_dump_aggregated_period(time_start_rel_day, period):
         # filter printout
         if count_tot > 0 and count > 0 and avg_bal > 0:
             print('  ', time_start, e['time_end'], date_time_start.isoformat(), count_tot, e['ip'], e['port'], count, e['account'], avg_bal)
+    # CSV
+    print('CSV')
+    print('time_start, time_end, count_tot, ip, port, count, account, avg_bal')
+    for e in ret:
+        print(e['time_start'], ',', e['time_end'], ',', e['count_tot'], ',"', e['ip'], '",', e['port'], ',', e['count'], ',', e['account'], ',', e['avg_bal'], sep='')
+
+# Print aggregated data, by periods
+def regen_aggregated_period(time_start_rel_day, period):
+    now = int(time.time())
+    time_start0 = now - 24 * 3600 * time_start_rel_day
+    #print(time_start0)
+    evaluate_periods(time_start0, period)
 
 # Print aggregated data, by days
 def dump_aggregated_daily(time_start_rel_day):
@@ -399,6 +407,11 @@ def dump_aggregated_daily(time_start_rel_day):
         eligible = int(e['eligible'])
         if eligible == 0:
             print('  ', date_time_start.isoformat(), time_start, ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['count_nonempty'], e['avg_bal'], e['port'], e['account'], e['reward_elig'], e['reward_sent'], e['sent_time'], e['sent_hash'])
+    # CSV
+    print('CSV')
+    print('time_start, time_end, ip, port, account, count_pos, count_neg, count_nonempty, avg_bal, eligible, deny_reason, reward_elig, reward_sent, sent_hash, sent_time')
+    for e in ret:
+        print(e['time_start'], ',', e['time_end'], ',"', e['ip'], '",', e['port'], ',', e['account'], ',', e['count_pos'], ',', e['count_neg'], ',', e['count_nonempty'], ',', e['avg_bal'], ',', e['eligible'], ',"', e['deny_reason'], '",', e['reward_elig'], ',', e['reward_sent'], ',', e['sent_hash'], ',', e['sent_time'], sep='')
 
 # Reevaluate daily data
 def regen_aggregated_daily(time_start_rel_day, reeval_periods = False):
