@@ -122,7 +122,6 @@ def __evaluate_daily(time_start):
         ip = e['ip']
         count_pos = int(e['count_pos'])
         count_neg = int(e['count_neg'])
-        avg_bal = float(e['avg_bal'])
 
         eligible = 1
         deny_reason = 'OK'
@@ -147,7 +146,7 @@ def __evaluate_daily(time_start):
     for e in daynodes:
         if e['eligible'] > 0:
             acc = e['account']
-            bal = e['avg_bal']
+            avg_bal = float(e['avg_bal'])
             avail_balance[acc] = {'tot': avg_bal, 'avail': avg_bal}
 
     # Reward categories
