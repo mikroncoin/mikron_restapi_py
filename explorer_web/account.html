@@ -9,9 +9,9 @@ function load() {
     document.getElementById("lb_acc").innerText = account;
     document.getElementById("lb_acc_short").innerText = account.substring(0, 15) + '...';
     document.getElementById("lb_balance").innerText = "?";
-    document.getElementById("d_transactions").innerHTML = "<table>" + historyHeader() + "<tr><td colspan='6'>(loading history)</td></tr></table>"
+    document.getElementById("d_history").innerHTML = "Latest Transactions:<p/><table>" + historyHeader() + "<tr><td colspan='6'>(loading...)</td></tr></table>"
 
-    callGetUrl(/*serviceBaseUrl + */"/account/balance/" + account, (text) => document.getElementById('lb_balance').innerText = text);
+    callGetUrl(/*serviceBaseUrl + */"/account/balance/" + account, (text) => document.getElementById('lb_balance').innerText = text + " MIK");
     getHistory(account);
 
     load_header();
@@ -100,22 +100,32 @@ function historyHeader() {
 function loadHistory(history_raw) {
     hist_json = JSON.parse(history_raw);
     //console.log(hist_json);
-    if ('history' in hist_json) {
-        var hist_html = "<table>";
-        // header
-        hist_html += historyHeader();
-        if (hist_json['history'].length == 0) {
-            hist_html += "<tr><td colspan='6'>No transactions</td></tr>";
-        } else {
-            hist_json['history'].forEach(row => {
-                hist_html += loadHistoryRow(row);
-            });
-        }
-        hist_html += "</table>";
-        document.getElementById("d_transactions").innerHTML = hist_html;
-    } else {
-        document.getElementById("d_transactions").innerHTML = "<table> " + historyHeader() + "<tr><td colspan='6'>Error loading</td></tr></table>";
+    if (!('history' in hist_json)) {
+        renderError("Error loading history");
+        return;
     }
+    //console.log(hist_json['history']);
+    if (hist_json['history'] == "") {
+        renderError("Account not found or invalid");
+        return;
+    }
+    var hist_html = "Latest Transactions:</p><table>";
+    // header
+    hist_html += historyHeader();
+    if (hist_json['history'].length == 0) {
+        hist_html += "<tr><td colspan='6'>No transactions</td></tr>";
+    } else {
+        hist_json['history'].forEach(row => {
+            hist_html += loadHistoryRow(row);
+        });
+    }
+    hist_html += "</table>";
+    document.getElementById("d_history").innerHTML = hist_html;
+}
+
+function renderError(error) {
+    document.getElementById("d_history").innerHTML = "<b>" + error + "</b><p/>";
+    document.getElementById("lb_balance").innerText = "?";
 }
         </script>
     </head>
@@ -132,11 +142,10 @@ function loadHistory(history_raw) {
             Account: <label id="lb_acc"></label>
         </div>
         <div>
-            Balance: <b><label id="lb_balance"></label> MIK</b>
+            Balance: <b><label id="lb_balance"></label></b>
         </div>
         <div>
-            Latest Transactions:
-            <div id="d_transactions">
+            <div id="d_history">
             </div>
         </div>
         <div>

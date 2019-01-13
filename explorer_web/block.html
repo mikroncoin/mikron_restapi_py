@@ -6,11 +6,8 @@ var block_hash = "UNSET";
 
 function load() {
     getQueryInputParam();
-    document.getElementById("lb_hash").innerText = "?";
     document.getElementById("lb_hash_short").innerText = "?";
-    document.getElementById("lb_acc").innerText = "?";
-    document.getElementById("lb_type").innerText = "?";
-    document.getElementById("lb_prev").innerText = "?";
+    document.getElementById("block_data").innerText = "?";
 
     getBlock(block_hash);
 
@@ -78,24 +75,28 @@ function getBlock(block_hash) {
 function loadBlock(block_raw) {
     block_json = JSON.parse(block_raw);
     if (block_json.error != undefined) {
+        // error
         console.log(block_json.error);
         document.getElementById("lb_hash_short").innerText = "Not found!";
+        document.getElementById("block_data").innerHTML = "<b>Block not found!</b><p/>" + block_hash;
         return;
     }
-    document.getElementById("lb_hash").innerText = block_hash;
     document.getElementById("lb_hash_short").innerText = block_hash.substring(0, 10) + '...';
     //console.log(block_json);
     account = block_json.account;
-    document.getElementById("lb_acc").innerHTML = "<a href='/explorer/account/" + account + "'>" + account + "</a>";
+    h = "";
+    h += "Hash: " + block_hash + "<p/>";
     //console.log(block_json.type);
-    document.getElementById("lb_type").innerHTML = "<b>" + block_json.type + "</b>";
-    document.getElementById("lb_bal").innerHTML = "<b>" + block_json.balance + " MIK</b>";
-    document.getElementById("lb_date").innerText = block_json.creation_time_as_date;
-    document.getElementById("lb_link_acc").innerHTML = "<a href='/explorer/account/" + block_json.link_as_account + "'>" + block_json.link_as_account + "</a>";
-    document.getElementById("lb_link_hash").innerHTML = "<a href='/explorer/block/" + block_json.link + "'>" + block_json.link + "</a>";
-    document.getElementById("lb_prev").innerHTML = "<a href='/explorer/block/" + block_json.previous + "'>" + block_json.previous + "</a>";
-    document.getElementById("lb_repr").innerHTML = "<a href='/explorer/account/" + block_json.representative + "'>" + block_json.representative + "</a>";
-    document.getElementById("lb_work").innerText = block_json.work;
+    h += "Type: <b>" + block_json.type + "</b><p/>";
+    h += "Account: <a href='/explorer/account/" + account + "'>" + account + "</a><p/>";
+    h += "Balance: <b>" + block_json.balance + " MIK</b><p/>";
+    h += "Date: " + block_json.creation_time_as_date + "<p/>";
+    h += "Receive from (link as hash): <a href='/explorer/block/" + block_json.link + "'>" + block_json.link + "</a><p/>";
+    h += "Send to (link as account): <a href='/explorer/account/" + block_json.link_as_account + "'>" + block_json.link_as_account + "</a><p/>";
+    h += "Previous: <a href='/explorer/block/" + block_json.previous + "'>" + block_json.previous + "</a><p/>";
+    h += "Representative: <a href='/explorer/account/" + block_json.representative + "'>" + block_json.representative + "</a><p/>";
+    h += "Work: " + block_json.work + "<p/>";
+    document.getElementById("block_data").innerHTML = h;
 }
         </script>
     </head>
@@ -109,25 +110,7 @@ function loadBlock(block_raw) {
         </div>
         <div>
             <h2>Block <label id="lb_hash_short"></label></h2>
-            Hash: <label id="lb_hash"></label>
-            <p/>
-            Type: <label id="lb_type"></label>
-            <p/>
-            Account: <label id="lb_acc"></label>
-            <p/>
-            Balance: <label id="lb_bal"></label>
-            <p/>
-            Date: <label id="lb_date"></label>
-            <p/>
-            Receive from (link as hash): <label id="lb_link_hash"></label>
-            <p/>
-            Send to (link as account): <label id="lb_link_acc"></label>
-            <p/>
-            Previous: <label id="lb_prev"></label>
-            <p/>
-            Representative: <label id="lb_repr"></label>
-            <p/>
-            Work: <label id="lb_work"></label>
+            <div id="block_data"></div>
         </div>
         <div>
             <button onclick="load()">Refresh</button>
