@@ -370,7 +370,7 @@ def dump_aggregated_period():
         if count_tot > 0 and count > 0 and avg_bal > 0:
             print('  ', time_start, e['time_end'], date_time_start.isoformat(), count_tot, e['ip'], e['port'], count, e['account'], avg_bal)
     # CSV
-    print('CSV')
+    print('#CSV')
     print('time_start, time_end, count_tot, ip, port, count, account, avg_bal')
     for e in ret:
         print(e['time_start'], ',', e['time_end'], ',', e['count_tot'], ',"', e['ip'], '",', e['port'], ',', e['count'], ',', e['account'], ',', e['avg_bal'], sep='')
@@ -407,7 +407,7 @@ def dump_aggregated_daily(time_start_rel_day):
         if eligible == 0:
             print('  ', date_time_start.isoformat(), time_start, ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['count_nonempty'], e['avg_bal'], e['port'], e['account'], e['reward_elig'], e['reward_sent'], e['sent_time'], e['sent_hash'])
     # CSV
-    print('CSV')
+    print('#CSV')
     print('time_start, time_end, ip, port, account, count_pos, count_neg, count_nonempty, avg_bal, eligible, deny_reason, reward_elig, reward_sent, sent_hash, sent_time')
     for e in ret:
         print(e['time_start'], ',', e['time_end'], ',"', e['ip'], '",', e['port'], ',', e['account'], ',', e['count_pos'], ',', e['count_neg'], ',', e['count_nonempty'], ',', e['avg_bal'], ',', e['eligible'], ',"', e['deny_reason'], '",', e['reward_elig'], ',', e['reward_sent'], ',', e['sent_hash'], ',', e['sent_time'], sep='')

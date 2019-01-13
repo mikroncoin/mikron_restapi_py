@@ -65,6 +65,10 @@ def send():
         }
 
 def sendIntern(src_account, src_walletid, dest_account, amount, unique_id, max_amount, min_amount):
+    # exclude send to self
+    if src_account == dest_account:
+        return {"error": "Send to self is invalid"}
+
     amountFloat = 0
     try:
         amountFloat = float(amount)
