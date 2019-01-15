@@ -15,10 +15,17 @@ def readConfig():
     if 'monitor_nodes' in tmpconfig:
         if 'enabled' in tmpconfig['monitor_nodes']:
             config['monitor_nodes.enabled'] = tmpconfig['monitor_nodes']['enabled']
-        if 'observer.1.url' in tmpconfig['monitor_nodes']:
-            config['monitor_nodes.observer.1.url'] = tmpconfig['monitor_nodes']['observer.1.url']
-        if 'observer.1.firewall' in tmpconfig['monitor_nodes']:
-            config['monitor_nodes.observer.1.firewall'] = int(tmpconfig['monitor_nodes']['observer.1.firewall'])
+
+        # support more configured observers
+        config['monitor_nodes.observers'] = []
+        for i in range(20):
+            obs_pref = 'observer.' + str(i+1) + '.'
+            if (obs_pref+'url' in tmpconfig['monitor_nodes']) and (obs_pref+'firewall' in tmpconfig['monitor_nodes']):
+                config['monitor_nodes.observers'].append({
+                    'url': tmpconfig['monitor_nodes'][obs_pref+'url'],
+                    'firewall': tmpconfig['monitor_nodes'][obs_pref+'firewall']
+                })
+
         if 'listen.host' in tmpconfig['monitor_nodes']:
             config['monitor_nodes.host'] = tmpconfig['monitor_nodes']['listen.host']
         if 'listen.port' in tmpconfig['monitor_nodes']:

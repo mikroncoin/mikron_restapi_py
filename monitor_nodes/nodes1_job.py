@@ -33,7 +33,8 @@ def parse_endpoint(endpoint):
 def nodes_one():
     global config
     session = requests.Session()
-    save_nodes(session, config['monitor_nodes.observer.1.url'], config['monitor_nodes.observer.1.firewall'])
+    for obs in config['monitor_nodes.observers']:
+        save_nodes(session, obs['url'], obs['firewall'])
 
 def save_node(time, obs_srv, obs_firewall, host, port, account, balance):
     db.save_node(time, obs_srv, obs_firewall, host, port, account, balance)
@@ -45,7 +46,7 @@ def save_nodes_int(session, obs_srv, obs_firewall):
         url = obs_srv + "/peers/list"
         response = session.get(url)
         if response.status_code != 200:
-            print("ERROR", "accessing node list", response.status_code, response.text)
+            get_logger().error('ERROR accessing node list ' + str(response.status_code) + ' ' + str(response.text))
             return 0
         #print(response.text)
         peers_json = json.loads(response.text)
@@ -68,18 +69,18 @@ def save_nodes_int(session, obs_srv, obs_firewall):
                 cnt = cnt + 1
         return cnt
     except Exception as e:
-        print("ERROR", "accessing node list", "exception", e)
+        get_logger().error('ERROR accessing node list, exception ' + str(e))
         return 0
     return 0
 
 def save_nodes(session, obs_srv, obs_firewall):
     #now = int(time.time())
-    get_logger().info('Retrieving node list, srv ' + str(obs_srv))
+    get_logger().info('Retrieving node list, srv ' + str(obs_srv) + ' ' + str(obs_firewall))
     no_nodes_saved = save_nodes_int(session, obs_srv, obs_firewall)
     if no_nodes_saved == 0:
         get_logger().error('Error retrieving node list, no nodes could be retrieved')
     else:
-        get_logger().info('Nodes saved, cnt ' + str(no_nodes_saved))
+        get_logger().info('Nodes saved, cnt ' + str(no_nodes_saved) + ' srv ' + str(obs_srv))
 
 def start_job():
     now = int(time.time())
