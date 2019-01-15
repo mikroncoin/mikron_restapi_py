@@ -354,7 +354,7 @@ def dump_raw():
     nodes = db.get_all_nodes_unordered()
     print(str(len(nodes)) + " nodes")
     for n in nodes:
-        print(int(n['time_sec']), n['ip'], n['port'], n['balance'], n['account'], sep=', ')
+        print(int(n['time_sec']), n['ip'], n['port'], n['balance'], n['account'], n['obs_srv'], sep=', ')
 
 # Print aggregated data, by periods
 def dump_aggregated_period():
