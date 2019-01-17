@@ -174,7 +174,7 @@ def get_all_period_sorted():
 
 # Get the min and max of the observed period times
 def get_min_max_time_period():
-    c, conn = connect(get_db_name_noderaw())
+    c, conn = connect(get_db_name_nodecompute())
     c.execute("SELECT MIN(time_start) AS min, MAX(time_start) AS max FROM nodeperiod;")
     ret = c.fetchall()
     close(conn)

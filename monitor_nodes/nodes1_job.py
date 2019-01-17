@@ -90,7 +90,7 @@ def start_job():
         now = int(time.time())
         if now >= next_update:
             nodes_one()
-            next_update = int((next_update + delay) / delay) * delay
+            next_update = max(int((next_update + delay) / delay) * delay, now + 1)   # max: prevent next_update in the past
             #get_logger().info("Next check in " + str(next_update - now) + " sec");
         to_sleep = min(30, max(0.5, (next_update - now) / 2 - 1))
         #get_logger().info("Sleep for " + str(to_sleep) + " sec");

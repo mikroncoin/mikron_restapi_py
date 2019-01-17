@@ -49,7 +49,7 @@ def start_job():
                 evaluate.evaluate_periods(start_time, ten_minute)
                 now = int(time.time())
                 evaluate_period_last_finished = now
-                get_logger().info('Done evaluate_periods ' + str(now))
+                get_logger().info('Done evaluate_periods ' + str(now) + ' dur ' + str(evaluate_period_last_finished - evaluate_period_last_started))
 
                 if (now - evaluate_daily_last_started) >= 2*3600:
                     # evaluate days now
@@ -60,7 +60,7 @@ def start_job():
                     evaluate.evaluate_days(start_time)
                     now = int(time.time())
                     evaluate_daily_last_finished = now
-                    get_logger().info('Done evaluate_days ' + str(now))
+                    get_logger().info('Done evaluate_days ' + str(now) + ' dur ' + str(evaluate_daily_last_finished - evaluate_daily_last_started))
 
                     time.sleep(5)
                     # payout for last 2+1 days
