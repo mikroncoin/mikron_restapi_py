@@ -159,6 +159,7 @@ def __evaluate_daily(time_start):
     max_count_cat1 = 200
     max_count_cat2 = 20
     max_count_cat3 = 5
+    balance_limit_tolerance = 1.0 - 0.02   # allow 2% tolerance (it happened that a balance of exactly 1000 was seen as 999 due to some sampling error)
 
     # Count candidates per categories (to compute reqards if over limit)
     count_cat1 = 0
@@ -201,16 +202,16 @@ def __evaluate_daily(time_start):
             time_start = int(e['time_start'])
             time_start_as_date = datetime.datetime.utcfromtimestamp(time_start).date().isoformat()
             avg_bal = float(e['avg_bal'])
-            if avg_bal < limit_cat1:
+            if avg_bal < limit_cat1 * balance_limit_tolerance:
                 e['eligible'] = 0
                 e['deny_reason'] = 'Not enough Reserve ' + str(avg_bal) + ' (limit ' + str(limit_cat1) + ')'
             else:
-                if avg_bal < limit_cat2:
+                if avg_bal < limit_cat2 * balance_limit_tolerance:
                     e['eligible'] = 1
                     e['reward_elig'] = reward_cat1
                     e['deny_reason'] = 'Eligible for Reward ' + str(reward_cat1) + ', for ' + str(time_start_as_date) + ' (C1, limit ' + str(limit_cat1) + ')'
                 else:
-                    if avg_bal < limit_cat3:
+                    if avg_bal < limit_cat3 * balance_limit_tolerance:
                         e['eligible'] = 2
                         e['reward_elig'] = reward_cat2 + reward_cat1
                         e['deny_reason'] = 'Eligible for Reward ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ', for ' + str(time_start_as_date) + ' (C2, limit ' + str(limit_cat2) + ')'
