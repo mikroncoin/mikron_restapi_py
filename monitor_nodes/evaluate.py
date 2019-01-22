@@ -285,10 +285,16 @@ def evaluate_days(time_start):
                 period_cnt_nonempty = period_cnt_nonempty + 1
                 for e in nodes:
                     ip = e['ip']
-                    #if ip not in node_dict:
+                    port = e['port']
+                    port2 = 0
+                    if ip in node_dict:
+                        # This node is already seen. Override record, but take port from it into port2 if different.
+                        if node_dict[ip]['port'] != port:
+                            port2 = node_dict[ip]['port']
                     node_dict[ip] = {
                         'ip': ip,
-                        'port': e['port'],
+                        'port': port,
+                        'port2': port2,
                         'account': e['account'],
                         'count_pos': 0,
                         'count_neg': 0,
@@ -303,7 +309,7 @@ def evaluate_days(time_start):
         # Print IPs
         #print('IPs found:')
         #for ip in node_dict:
-        #    print('  ', ip, node_dict[ip]['port'], node_dict[ip]['account'])
+        #    print('  ', ip, node_dict[ip]['port'], node_dict[ip]['port2'], node_dict[ip]['account'])
         
         # Phase 2: Aggregate positive and negative counts
         for j in range(0, periods_per_day):  # 10-min periods, 144
@@ -321,9 +327,11 @@ def evaluate_days(time_start):
                     if ip not in node_dict:
                         print('ERROR, ip not found', ip)
                     else:
-                        #print(e['ip'], e['port'], e['avg_bal'], e['account'])
-                        if e['port'] == node_dict[ip]['port']:  # have to have the same port
-                            if e['account'] == node_dict[ip]['account']:  # have to have the same port
+                        #print(e['ip'], e['port'], e['port2'], e['avg_bal'], e['account'])
+                        # Have to have the same port, but 2 are allowed -- see Issue #3 https://github.com/mikroncoin/mikron_restapi_py/issues/3
+                        if (e['port'] == node_dict[ip]['port']) or (node_dict[ip]['port2'] != 0 and e['port'] == node_dict[ip]['port2']):
+                            # have to have the same account
+                            if e['account'] == node_dict[ip]['account']:
                                 if count_tot > 0:
                                     if count > 0:
                                         count_pos = node_dict[ip]['count_pos'] + 1
@@ -331,7 +339,7 @@ def evaluate_days(time_start):
                                         sum_bal = node_dict[ip]['sum_bal'] + float(e['avg_bal'])
                                         node_dict[ip]['sum_bal'] = sum_bal
                     #if count_pos >= 143:
-                    #    print('DEBUG', count_pos, j, start, e['ip'], e['port'], e['avg_bal'], e['account'])
+                    #    print('DEBUG', count_pos, j, start, e['ip'], e['port'], e['port2'], e['avg_bal'], e['account'])
         # Compute some derived values: count_neg, avg_bal
         for ip in node_dict:
             count_pos = int(node_dict[ip]['count_pos'])
@@ -342,8 +350,12 @@ def evaluate_days(time_start):
             if count_pos > 0:
                 avg_bal = sum_bal / float(count_pos)
             node_dict[ip]['avg_bal'] = avg_bal
-            #print('  ', ip, count_pos, count_neg, period_cnt_nonempty, avg_bal, node_dict[ip]['port'], node_dict[ip]['account'])
-            db.add_daily(day_start, day_end, ip, node_dict[ip]['port'], node_dict[ip]['account'], count_pos, count_neg, period_cnt_nonempty, avg_bal)
+            # port: if port2!=0, include it also
+            port = str(node_dict[ip]['port'])
+            if node_dict[ip]['port2'] != 0:
+                port = port + '_' + str(node_dict[ip]['port2'])
+            #print('  ', ip, count_pos, count_neg, period_cnt_nonempty, avg_bal, port, node_dict[ip]['account'])
+            db.add_daily(day_start, day_end, ip, port, node_dict[ip]['account'], count_pos, count_neg, period_cnt_nonempty, avg_bal)
     # end days cycle
 
     __evaluate_daily(min_adj)
