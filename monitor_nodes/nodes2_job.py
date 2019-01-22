@@ -46,18 +46,21 @@ def start_job():
                 start_time = max(earliest_start_time, evaluate_period_last_started)
                 get_logger().info('Do evaluate_periods ' + str(remainder_10min) + ' ' + str(now) + ' ' + str(start_time))
                 evaluate_period_last_started = now
-                evaluate.evaluate_periods(start_time, ten_minute)
+                evaluate.evaluate_periods(start_time, now + ten_minute, ten_minute)
                 now = int(time.time())
                 evaluate_period_last_finished = now
                 get_logger().info('Done evaluate_periods ' + str(now) + ' dur ' + str(evaluate_period_last_finished - evaluate_period_last_started))
 
                 if (now - evaluate_daily_last_started) >= 2*3600:
                     # evaluate days now
-                    earliest_start_time = now - 4 * 24 * 3600
+                    period_day = 24 * 3600
+                    now_day = int(now / period_day) * period_day
+                    earliest_start_time = now_day - 4 * period_day
                     start_time = max(earliest_start_time, evaluate_daily_last_started)
-                    get_logger().info('Do evaluate_days ' + str(now) + ' ' + str(start_time))
+                    end_time = now_day + period_day
+                    get_logger().info('Do evaluate_days ' + str(now) + ' ' + str(start_time) + ' ' + str(end_time))
                     evaluate_daily_last_started = now
-                    evaluate.evaluate_days(start_time)
+                    evaluate.evaluate_days(start_time, end_time)
                     now = int(time.time())
                     evaluate_daily_last_finished = now
                     get_logger().info('Done evaluate_days ' + str(now) + ' dur ' + str(evaluate_daily_last_finished - evaluate_daily_last_started))

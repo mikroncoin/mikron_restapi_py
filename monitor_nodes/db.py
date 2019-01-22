@@ -114,6 +114,7 @@ def get_all_nodes_unordered():
     return ret
 
 # Get the min and max of the observed times
+'''
 def get_min_max_time_raw():
     #now = time.time()
     c, conn = connect(get_db_name_noderaw())
@@ -123,6 +124,7 @@ def get_min_max_time_raw():
     #now2 = time.time()
     #print('get_min_max_time_raw', 0.1 * int(10000 * (now2 - now)), now, now2)
     return ret
+'''
 
 # get entries, filtered by a time range
 def get_nodes_filter_time(start, end):
@@ -136,6 +138,7 @@ def get_nodes_filter_time(start, end):
     return ret
 
 # get entries aggregate, for a time range.  Doesn't work
+'''
 def get_nodes_aggregate_time(start, end):
     c, conn = connect(get_db_name_noderaw())
     #c.execute("SELECT ip, COUNT(1) AS count FROM noderaw GROUP BY ip;")
@@ -143,6 +146,7 @@ def get_nodes_aggregate_time(start, end):
     ret = c.fetchall()
     close(conn)
     return ret
+'''
 
 def delete_period_filter_time(time_start):
     c, conn = connect(get_db_name_nodecompute())
@@ -205,12 +209,14 @@ def get_all_period_sorted():
     return ret
 
 # Get the min and max of the observed period times
+'''
 def get_min_max_time_period():
     c, conn = connect(get_db_name_nodecompute())
     c.execute("SELECT MIN(time_start) AS min, MAX(time_start) AS max FROM nodeperiod;")
     ret = c.fetchall()
     close(conn)
     return ret
+'''
 
 # get period entries, filtered by a time range
 def get_nodes_period_filter_time(start, end):

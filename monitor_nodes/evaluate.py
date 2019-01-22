@@ -45,24 +45,26 @@ def get_logger():
     return logging.getLogger(__name__)
 
 # Phase 1: Aggregate data into periods of period seconds
-def evaluate_periods(time_start, period):
+# time_end is exclusive
+def evaluate_periods(time_start, time_end, period):
     if is_running_evaluate_periods:
         return
     start_evaluate_periods()
     start_time = time.time()
 
-    minmax = db.get_min_max_time_raw()
+    #minmax = db.get_min_max_time_raw()
     #print(minmax)
-    min = int(float(minmax[0]['min']))
-    if time_start > min:
-        min = time_start
-    max = int(float(minmax[0]['max']))
+    #min = int(float(minmax[0]['min']))
+    min = time_start
+    #max = int(float(minmax[0]['max']))
+    max = time_end - 1
     min_adj = int(min / period) * period
     max_adj = int(max / period) * period
     count = int((max_adj-min_adj)/period) + 1
     get_logger().info('Time range: ' + str(min_adj) + ' -- ' + str(max_adj + period - 1) + ' count ' + str(count) + ' unadjusted ' + str(min) + ' - ' + str(max) + ' ' + str(max-min))
 
-    db.delete_period_filter_time(min_adj)
+    delret = db.delete_period_filter_time(min_adj)
+    get_logger().info('Periods deleted ' + str(min_adj) + ' ' + str(delret))
 
     for i in range(0, count):
         start = min_adj + i * period
@@ -246,19 +248,18 @@ def __evaluate_daily(time_start):
         #print('  ', time_start, e['time_end'], date_time_start.isoformat(), ip, eligible, deny_reason, count_pos, count_neg, avg_bal, e['port'], e['account'])
 
 # Aggregate data into days
-def evaluate_days(time_start):
+# time_end is not inclusive
+def evaluate_days(time_start, time_end):
     if is_running_evaluate_days:
         return
     start_evaluate_days()
+    start_time = time.time()
 
-    # Time range from periods
-    minmax = db.get_min_max_time_raw()
+    # Time range
+    #minmax = db.get_min_max_time_raw()
     #print(minmax)
-    min = int(float(minmax[0]['min']))
-    if time_start > min:
-        min = time_start
-    max = int(float(minmax[0]['max']))
-
+    min = time_start
+    max = time_end - 1
     period_day = 24 * 3600
     min_adj = int(min / period_day) * period_day
     max_adj = int(max / period_day) * period_day
@@ -273,7 +274,7 @@ def evaluate_days(time_start):
             get_logger().info('Adjusted min_adj to ' + str(min_adj) + ' due to latest_sent_time ' + str(latest_sent_time))
 
     count = int((max_adj-min_adj)/period_day) + 1
-    get_logger().info('Time range: ' + str(min_adj) + ' -- ' + str(max_adj) + ' ' + str(period_day - 1) + ' count ' + str(count) + ' unadjusted ' + str(min) + ' - ' + str(max) + ' ' + str(max-min))
+    get_logger().info('Time range: ' + str(min_adj) + ' -- ' + str(max_adj) + ' ' + str(period_day) + ' count ' + str(count) + ' unadjusted ' + str(min) + ' - ' + str(max) + ' ' + str(max-min))
 
     db.delete_daily_filter_time(min_adj)
 
@@ -344,7 +345,7 @@ def evaluate_days(time_start):
                     count_tot = e['count_tot']
                     count = e['count']
                     if ip not in node_dict:
-                        print('ERROR, ip not found', ip)
+                        get_logger().error('ERROR, ip not found ' + str(ip))
                     else:
                         #print(e['ip'], e['port'], e['port2'], e['avg_bal'], e['account'])
                         # Have to have the same port, but 2 are allowed -- see Issue #3 https://github.com/mikroncoin/mikron_restapi_py/issues/3
@@ -379,6 +380,9 @@ def evaluate_days(time_start):
 
     __evaluate_daily(min_adj)
 
+    stop_time = time.time()
+    get_logger().info('evaluate_days dur ' + str(0.1 * int(10000.0 * (stop_time - start_time))) +  'ms')
+
     stop_evaluate_days()
 
 # Dump all raw data
@@ -410,9 +414,11 @@ def dump_aggregated_period():
 # Print aggregated data, by periods
 def regen_aggregated_period(time_start_rel_day, period):
     now = int(time.time())
-    time_start0 = now - 24 * 3600 * time_start_rel_day
+    now_adj = int(now/period) * period
+    time_start0 = now_adj - 24 * 3600 * time_start_rel_day
+    time_end0 = now_adj + 2 * period
     #print(time_start0)
-    evaluate_periods(time_start0, period)
+    evaluate_periods(time_start0, time_end0, period)
 
 # Print aggregated data, by days
 def dump_aggregated_daily(time_start_rel_day):
@@ -447,9 +453,12 @@ def dump_aggregated_daily(time_start_rel_day):
 # Reevaluate daily data
 def regen_aggregated_daily(time_start_rel_day, reeval_periods = False):
     now = int(time.time())
-    time_start0 = now - time_start_rel_day * 24 * 3600
+    period_day = 24 * 3600
+    now_day = int(now / period_day) * period_day
+    time_start0 = now_day - time_start_rel_day * 24 * 3600
+    time_end0 = now_day + period_day
     #print(time_start0)
 
     if reeval_periods:
-        evaluate_periods(time_start0, 600)  # 10-min
-    evaluate_days(time_start0)
+        evaluate_periods(time_start0, time_end0, 600)  # 10-min
+    evaluate_days(time_start0, time_end0)
