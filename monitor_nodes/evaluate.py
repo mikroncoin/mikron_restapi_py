@@ -11,7 +11,7 @@ def start_evaluate_periods():
     global is_running_evaluate_periods
     now = int(time.time())
     if is_running_evaluate_periods:
-        print('WARNING', 'evaluate_periods', 'already running', now)
+        get_logger().warning('WARNING: evaluate_periods already running ' + str(now))
         return
     is_running_evaluate_periods = True
     #print('start_evaluate_periods', now)
@@ -19,7 +19,7 @@ def stop_evaluate_periods():
     global is_running_evaluate_periods
     now = int(time.time())
     if not is_running_evaluate_periods:
-        print('WARNING', 'evaluate_periods', 'not running', now)
+        get_logger().warning('WARNING: evaluate_periods not running ' + str(now))
         return
     is_running_evaluate_periods = False
     #print('stop_evaluate_periods', now)
@@ -27,7 +27,7 @@ def start_evaluate_days():
     global is_running_evaluate_days
     now = int(time.time())
     if is_running_evaluate_days:
-        print('WARNING', 'evaluate_days', 'already running', now)
+        get_logger().warning('WARNING: evaluate_days already running ' + str(now))
         return
     is_running_evaluate_days = True
     #print('start_evaluate_days', now)
@@ -35,7 +35,7 @@ def stop_evaluate_days():
     global is_running_evaluate_days
     now = int(time.time())
     if not is_running_evaluate_days:
-        print('WARNING', 'evaluate_days', 'not running', now)
+        get_logger().warning('WARNING: evaluate_days not running' + str(now))
         return
     is_running_evaluate_days = False
     #print('stop_evaluate_days', now)
@@ -49,6 +49,7 @@ def evaluate_periods(time_start, period):
     if is_running_evaluate_periods:
         return
     start_evaluate_periods()
+    start_time = time.time()
 
     minmax = db.get_min_max_time_raw()
     #print(minmax)
@@ -59,7 +60,7 @@ def evaluate_periods(time_start, period):
     min_adj = int(min / period) * period
     max_adj = int(max / period) * period
     count = int((max_adj-min_adj)/period) + 1
-    print('Time range:', min_adj, '--', max_adj + period - 1, 'count', count, 'unadjusted', min, '-', max, max-min)
+    get_logger().info('Time range: ' + str(min_adj) + ' -- ' + str(max_adj + period - 1) + ' count ' + str(count) + ' unadjusted ' + str(min) + ' - ' + str(max) + ' ' + str(max-min))
 
     db.delete_period_filter_time(min_adj)
 
@@ -69,6 +70,7 @@ def evaluate_periods(time_start, period):
         #print('Range', start, end-1)
         nodes = db.get_nodes_filter_time(start, end)
         count_total = len(nodes)
+        #print('Range', start, end-1, count_total)
         if count_total == 0:
             #print('Range', start, end-1, 'no data')
             noop = 0
@@ -93,16 +95,33 @@ def evaluate_periods(time_start, period):
                 node_dict[endpoint]['count'] = entry['count'] + 1
                 node_dict[endpoint]['sum_bal'] = entry['sum_bal'] + float(n['balance'])
             # aggregated results
+            #print('node_dict', len(node_dict))
+            # Do bulk insert
+            period_entries = []
             for ep in node_dict:
                 count = node_dict[ep]['count']
                 sum_bal = node_dict[ep]['sum_bal']
                 avg_bal = float(sum_bal) / float(count)
                 account = node_dict[ep]['account']
                 #print('  .', start, end, count_total, node_dict[ep]['ip'], node_dict[ep]['port'], count, account, avg_bal)
-                db.add_period_entry(start, end, count_total, node_dict[ep]['ip'], node_dict[ep]['port'], count, account, avg_bal)
+                #db.add_period_entry(start, end, count_total, node_dict[ep]['ip'], node_dict[ep]['port'], count, account, avg_bal)
+                period_entries.append({
+                    'time_start': start,
+                    'time_end': end,
+                    'count_tot': count_total,
+                    'ip': node_dict[ep]['ip'],
+                    'port': node_dict[ep]['port'],
+                    'count': count,
+                    'account': account,
+                    'avg_bal': avg_bal
+                })
                 #if avg_bal > 0:
                     #account = '0'  # hide print, just visual
                     #print(start, ep, count, avg_bal, account)
+            db.add_period_entries(period_entries)
+
+    stop_time = time.time()
+    get_logger().info('evaluate_periods dur ' + str(0.1 * int(10000.0 * (stop_time - start_time))) +  'ms')
 
     stop_evaluate_periods()
 

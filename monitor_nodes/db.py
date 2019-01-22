@@ -115,18 +115,24 @@ def get_all_nodes_unordered():
 
 # Get the min and max of the observed times
 def get_min_max_time_raw():
+    #now = time.time()
     c, conn = connect(get_db_name_noderaw())
     c.execute("SELECT MIN(time_sec) AS min, MAX(time_sec) AS max FROM noderaw;")
     ret = c.fetchall()
     close(conn)
+    #now2 = time.time()
+    #print('get_min_max_time_raw', 0.1 * int(10000 * (now2 - now)), now, now2)
     return ret
 
 # get entries, filtered by a time range
 def get_nodes_filter_time(start, end):
+    #now = time.time()
     c, conn = connect(get_db_name_noderaw())
     c.execute("SELECT * FROM noderaw WHERE time_sec >= " + str(start) + " AND time_sec < " + str(end) + ";")
     ret = c.fetchall()
     close(conn)
+    #now2 = time.time()
+    #print('get_nodes_filter_time', end - start, 0.1 * int(10000 * (now2 - now)), 'ms', now, now2)
     return ret
 
 # get entries aggregate, for a time range.  Doesn't work
@@ -148,6 +154,7 @@ def delete_period_filter_time(time_start):
     return ret
 
 def add_period_entry(time_start, time_end, count_tot, ip, port, count, account, avg_bal):
+    #now = time.time()
     c, conn = connect(get_db_name_nodecompute())
     sql_command = "INSERT INTO nodeperiod VALUES ("+\
         str(time_start) + ", "+\
@@ -162,7 +169,32 @@ def add_period_entry(time_start, time_end, count_tot, ip, port, count, account, 
     c.execute(sql_command)
     ret = c.fetchall()
     close(conn)
+    #now2 = time.time()
+    #print('add_period_entry', 0.1 * int(10000 * (now2 - now)), now, now2)
     return ret
+
+def add_period_entries(entries):
+    #now = time.time()
+    results = []
+    c, conn = connect(get_db_name_nodecompute())
+    for e in entries:
+        sql_command = "INSERT INTO nodeperiod VALUES ("+\
+            str(e['time_start']) + ", "+\
+            str(e['time_end']) + ", " +\
+            str(e['count_tot']) + ", '"+\
+            str(e['ip']) + "', '"+\
+            str(e['port']) + "', "+\
+            str(e['count']) + ", '"+\
+            str(e['account']) + "', "+\
+            str(e['avg_bal']) + ""+\
+            ");"
+        c.execute(sql_command)
+        ret = c.fetchall()
+        results.append(ret)
+    close(conn)
+    #now2 = time.time()
+    #print('add_period_entries', len(entries), 0.1 * int(10000 * (now2 - now)), 'ms', now, now2)
+    return results
 
 def get_all_period_sorted():
     c, conn = connect(get_db_name_nodecompute())
