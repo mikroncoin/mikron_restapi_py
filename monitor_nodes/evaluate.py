@@ -149,49 +149,49 @@ def __evaluate_daily(time_start):
             avg_bal = float(e['avg_bal'])
             avail_balance[acc] = {'tot': avg_bal, 'avail': avg_bal}
 
-    # Reward categories
-    limit_cat1 = 1000
-    limit_cat2 = 25000
-    limit_cat3 = 1000000
-    reward_cat1 = 25
-    reward_cat2 = 375
-    reward_cat3 = 4600
-    max_count_cat1 = 200
-    max_count_cat2 = 20
-    max_count_cat3 = 5
+    # Reward levels
+    limit_level1 = 1000
+    limit_level2 = 25000
+    limit_level3 = 1000000
+    reward_level1 = 25
+    reward_level2 = 375
+    reward_level3 = 4600
+    max_count_level1 = 200
+    max_count_level2 = 20
+    max_count_level3 = 5
     balance_limit_tolerance = 1.0 - 0.02   # allow 2% tolerance (it happened that a balance of exactly 1000 was seen as 999 due to some sampling error)
 
-    # Count candidates per categories (to compute reqards if over limit)
-    count_cat1 = 0
-    count_cat2 = 0
-    count_cat3 = 0
+    # Count candidates per levels (to compute reqards if over limit)
+    count_level1 = 0
+    count_level2 = 0
+    count_level3 = 0
     for e in daynodes:
         if e['eligible'] > 0:
             acc = e['account']
             if acc not in avail_balance:
                 get_logger().error('Internal ERROR: Account not found in avail_balance ' + str(acc) + str(e['ip']))
             else:
-                if avail_balance[acc]['avail'] >= limit_cat3:
-                    count_cat3 += 1
-                    avail_balance[acc]['avail'] -= limit_cat3
-                if avail_balance[acc]['avail'] >= limit_cat2:
-                    count_cat2 += 1
-                    avail_balance[acc]['avail'] -= limit_cat2
-                if avail_balance[acc]['avail'] >= limit_cat1:
-                    count_cat1 += 1
-                    avail_balance[acc]['avail'] -= limit_cat1
+                if avail_balance[acc]['avail'] >= limit_level3:
+                    count_level3 += 1
+                    avail_balance[acc]['avail'] -= limit_level3
+                if avail_balance[acc]['avail'] >= limit_level2:
+                    count_level2 += 1
+                    avail_balance[acc]['avail'] -= limit_level2
+                if avail_balance[acc]['avail'] >= limit_level1:
+                    count_level1 += 1
+                    avail_balance[acc]['avail'] -= limit_level1
     
     # Compute reward amounts
-    capped_count_cat1 = max(count_cat1, max_count_cat1)
-    capped_count_cat2 = max(count_cat2, max_count_cat2)
-    capped_count_cat3 = max(count_cat3, max_count_cat3)
-    reward_cat1 = (max_count_cat1 * reward_cat1) / float(capped_count_cat1)
-    reward_cat2 = (max_count_cat2 * reward_cat2) / float(capped_count_cat2)
-    reward_cat3 = (max_count_cat3 * reward_cat3) / float(capped_count_cat3)
-    # Print candidates per category, and rewards
-    get_logger().info('Candidates in category 1: ' + str(count_cat1) + ' (' + str(capped_count_cat1) + ') rew ' + str(reward_cat1) + ' (lim ' + str(limit_cat1) + ')')
-    get_logger().info('Candidates in category 2: ' + str(count_cat2) + ' (' + str(capped_count_cat2) + ') rew ' + str(reward_cat2) + ' (lim ' + str(limit_cat2) + ')')
-    get_logger().info('Candidates in category 3: ' + str(count_cat3) + ' (' + str(capped_count_cat3) + ') rew ' + str(reward_cat3) + ' (lim ' + str(limit_cat3) + ')')
+    capped_count_level1 = max(count_level1, max_count_level1)
+    capped_count_level2 = max(count_level2, max_count_level2)
+    capped_count_level3 = max(count_level3, max_count_level3)
+    reward_level1 = (max_count_level1 * reward_level1) / float(capped_count_level1)
+    reward_level2 = (max_count_level2 * reward_level2) / float(capped_count_level2)
+    reward_level3 = (max_count_level3 * reward_level3) / float(capped_count_level3)
+    # Print candidates per level, and rewards
+    get_logger().info('Candidates in level 1: ' + str(count_level1) + ' (' + str(capped_count_level1) + ') rew ' + str(reward_level1) + ' (lim ' + str(limit_level1) + ')')
+    get_logger().info('Candidates in level 2: ' + str(count_level2) + ' (' + str(capped_count_level2) + ') rew ' + str(reward_level2) + ' (lim ' + str(limit_level2) + ')')
+    get_logger().info('Candidates in level 3: ' + str(count_level3) + ' (' + str(capped_count_level3) + ') rew ' + str(reward_level3) + ' (lim ' + str(limit_level3) + ')')
 
     for acc in avail_balance:
         #print(acc)
@@ -202,23 +202,23 @@ def __evaluate_daily(time_start):
             time_start = int(e['time_start'])
             time_start_as_date = datetime.datetime.utcfromtimestamp(time_start).date().isoformat()
             avg_bal = float(e['avg_bal'])
-            if avg_bal < limit_cat1 * balance_limit_tolerance:
+            if avg_bal < limit_level1 * balance_limit_tolerance:
                 e['eligible'] = 0
-                e['deny_reason'] = 'Not enough Reserve ' + str(avg_bal) + ' (limit ' + str(limit_cat1) + ')'
+                e['deny_reason'] = 'Not enough Reserve ' + str(avg_bal) + ' (limit ' + str(limit_level1) + ')'
             else:
-                if avg_bal < limit_cat2 * balance_limit_tolerance:
+                if avg_bal < limit_level2 * balance_limit_tolerance:
                     e['eligible'] = 1
-                    e['reward_elig'] = reward_cat1
-                    e['deny_reason'] = 'Eligible for Reward ' + str(reward_cat1) + ', for ' + str(time_start_as_date) + ' (C1, limit ' + str(limit_cat1) + ')'
+                    e['reward_elig'] = reward_level1
+                    e['deny_reason'] = 'Eligible for Reward ' + str(reward_level1) + ', for ' + str(time_start_as_date) + ' (L1, limit ' + str(limit_level1) + ')'
                 else:
-                    if avg_bal < limit_cat3 * balance_limit_tolerance:
+                    if avg_bal < limit_level3 * balance_limit_tolerance:
                         e['eligible'] = 2
-                        e['reward_elig'] = reward_cat2 + reward_cat1
-                        e['deny_reason'] = 'Eligible for Reward ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ', for ' + str(time_start_as_date) + ' (C2, limit ' + str(limit_cat2) + ')'
+                        e['reward_elig'] = reward_level2 + reward_level1
+                        e['deny_reason'] = 'Eligible for Reward ' + str(reward_level2) + ' + ' + str(reward_level1) + ', for ' + str(time_start_as_date) + ' (L2, limit ' + str(limit_level2) + ')'
                     else:
                         e['eligible'] = 3
-                        e['reward_elig'] = reward_cat3 + reward_cat2 + reward_cat1
-                        e['deny_reason'] = 'Eligible for Reward ' + str(reward_cat3) + ' + ' + str(reward_cat2) + ' + ' + str(reward_cat1) + ', for ' + str(time_start_as_date) + ' (C3, limit ' + str(limit_cat3) + ')'
+                        e['reward_elig'] = reward_level3 + reward_level2 + reward_level1
+                        e['deny_reason'] = 'Eligible for Reward ' + str(reward_level3) + ' + ' + str(reward_level2) + ' + ' + str(reward_level1) + ', for ' + str(time_start_as_date) + ' (L3, limit ' + str(limit_level3) + ')'
 
     # Save result
     for e in daynodes:
