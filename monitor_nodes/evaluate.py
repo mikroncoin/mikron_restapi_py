@@ -340,6 +340,8 @@ def evaluate_days(time_start, time_end):
             len_nodes = len(nodes)
             if len_nodes > 0:
                 #print('DEBUG', j, 'len_nodes', len_nodes)
+                # Iterate through nodes, and if the case, mark the IP to be counted for thid period (one IP may occur multiple time with different ports)
+                ips_to_mark = {}  # contains avg_bal
                 for e in nodes:
                     ip =  e['ip']
                     count_tot = e['count_tot']
@@ -348,18 +350,20 @@ def evaluate_days(time_start, time_end):
                         get_logger().error('ERROR, ip not found ' + str(ip))
                     else:
                         #print(e['ip'], e['port'], e['port2'], e['avg_bal'], e['account'])
-                        # Have to have the same port, but 2 are allowed -- see Issue #3 https://github.com/mikroncoin/mikron_restapi_py/issues/3
-                        if (e['port'] == node_dict[ip]['port']) or (node_dict[ip]['port2'] != 0 and e['port'] == node_dict[ip]['port2']):
-                            # have to have the same account
-                            if e['account'] == node_dict[ip]['account']:
-                                if count_tot > 0:
-                                    if count > 0:
-                                        count_pos = node_dict[ip]['count_pos'] + 1
-                                        node_dict[ip]['count_pos'] = count_pos
-                                        sum_bal = node_dict[ip]['sum_bal'] + float(e['avg_bal'])
-                                        node_dict[ip]['sum_bal'] = sum_bal
-                    #if count_pos >= 143:
-                    #    print('DEBUG', count_pos, j, start, e['ip'], e['port'], e['port2'], e['avg_bal'], e['account'])
+                        if count_tot > 0:
+                            if count > 0:
+                                # Have to have the same port, but 2 are allowed -- see Issue #3 https://github.com/mikroncoin/mikron_restapi_py/issues/3
+                                if (e['port'] == node_dict[ip]['port']) or (node_dict[ip]['port2'] != 0 and e['port'] == node_dict[ip]['port2']):
+                                    # have to have the same account
+                                    if e['account'] == node_dict[ip]['account']:
+                                        ips_to_mark[ip] = float(e['avg_bal'])
+                # increment IPs to be marked
+                for ip in ips_to_mark:
+                    #print(j, ip, ips_to_mark[ip])
+                    count_pos = node_dict[ip]['count_pos'] + 1
+                    node_dict[ip]['count_pos'] = count_pos
+                    sum_bal = node_dict[ip]['sum_bal'] + float(ips_to_mark[ip])
+                    node_dict[ip]['sum_bal'] = sum_bal
         # Compute some derived values: count_neg, avg_bal
         for ip in node_dict:
             count_pos = int(node_dict[ip]['count_pos'])
