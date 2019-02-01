@@ -100,10 +100,13 @@ def getAccountBalance(accId):
     balMik = account_helper.fromRawToMikron(balance['balance'])
     return balMik
 
-def getAccountHistory(accId, count):
+def getAccountHistory(accId, count, offset = 0):
     global rai
     try:
-        history = rai.account_history({"account": accId, "count":count})
+        params = {"account": accId, "count": count}
+        if offset > 0:
+            params["offset"] = offset
+        history = rai.account_history(params)
         #print(history)
     except:
         return {"error": "exception"}

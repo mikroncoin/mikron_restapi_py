@@ -61,7 +61,15 @@ def getAccountBalance(account_id):
 # Example: curl http://localhost:8090/account/history/mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs
 @route('/account/history/<account_id>', method='GET')
 def getAccountHistory(account_id):
-    history = node_rpc_helper.getAccountHistory(account_id, 100)
+    return getAccountHistoryPage(account_id, 0)
+
+@route('/account/history/<account_id>/<page>', method='GET')
+def getAccountHistoryPage(account_id, page):
+    pagesize = 50
+    offset = 0
+    if page >= 1:
+        offset = (page - 1) * pagesize
+    history = node_rpc_helper.getAccountHistory(account_id, pagesize, offset)
     setHeaders()
     return history
 
