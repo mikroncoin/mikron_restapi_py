@@ -1,4 +1,4 @@
-import db
+import db_compute
 
 import logging
 import time
@@ -47,7 +47,7 @@ def payout_callback(id, amount, hash):
     ip = id[:index]
     time_start = id[index+1:]
     #print(ip, time)
-    ret = db.update_daily_sent(time_start, ip, amount, int(time.time()), hash)
+    ret = db_compute.update_daily_sent(time_start, ip, amount, int(time.time()), hash)
     get_logger().info('Post-send DB update ' + str(len(ret)))
 
 def do_payout(time_start, config):
@@ -57,7 +57,7 @@ def do_payout(time_start, config):
     account_password = config['monitor_nodes.sendout.account_password']
     my_url = 'http://' + config['monitor_nodes.host'] + ':' + str(config['monitor_nodes.port'])
     get_logger().info('Doing Payouts ' + str(now) + ' ' + str(now-time_start) + ' ' + account_id + ' ' + sendout_url + ' ')
-    to_pay = db.get_daily_filter_topay_time(time_start)
+    to_pay = db_compute.get_daily_filter_topay_time(time_start)
     get_logger().info('Found ' + str(len(to_pay)) + ' rewards to pay out')
     for n in to_pay:
         get_logger().info('reward elig/sent: ' + str(n['reward_elig']) + ' / ' + str(n['reward_sent']) + ' ' + str(n))

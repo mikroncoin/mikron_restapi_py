@@ -1,4 +1,4 @@
-import db
+import db_raw
 import balance
 import config
 
@@ -37,7 +37,7 @@ def nodes_one():
         save_nodes(session, obs['url'], obs['firewall'])
 
 def save_node(time, obs_srv, obs_firewall, host, port, account, balance):
-    db.save_node(time, obs_srv, obs_firewall, host, port, account, balance)
+    db_raw.save_node(time, obs_srv, obs_firewall, host, port, account, balance)
     #print("Saved node:", time, obs_srv, obs_firewall, host, port, account, ".")
 
 def save_nodes_int(session, obs_srv, obs_firewall):

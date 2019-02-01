@@ -1,4 +1,4 @@
-import db
+import db_compute
 import payout
 
 #import os
@@ -26,7 +26,7 @@ def getRewards3():
     start0 = int(time.time()) - 3 * period_day
     start = int(start0 / period_day) * period_day
 
-    nodes = db.get_all_daily_sorted_filter_time_rev(start)
+    nodes = db_compute.get_all_daily_sorted_filter_time_rev(start)
     ret = []
     try:
         for n in nodes:
@@ -64,7 +64,7 @@ def getPeriods6():
     end = int((now + period) / period) * period
     ret = []
     try:
-        nodes = db.get_nodes_period_filter_time(start, end)
+        nodes = db_compute.get_nodes_period_filter_time(start, end)
         for n in nodes:
             time_start = int(n['time_start'])
             dat = datetime.datetime.utcfromtimestamp(time_start).isoformat()

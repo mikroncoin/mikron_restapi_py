@@ -1,4 +1,5 @@
-import db
+import db_raw
+import db_compute
 
 import datetime
 import sys
@@ -63,14 +64,14 @@ def evaluate_periods(time_start, time_end, period):
     count = int((max_adj-min_adj)/period) + 1
     get_logger().info('Time range: ' + str(min_adj) + ' -- ' + str(max_adj + period - 1) + ' count ' + str(count) + ' unadjusted ' + str(min) + ' - ' + str(max) + ' ' + str(max-min))
 
-    delret = db.delete_period_filter_time(min_adj)
+    delret = db_compute.delete_period_filter_time(min_adj)
     get_logger().info('Periods deleted ' + str(min_adj) + ' ' + str(delret))
 
     for i in range(0, count):
         start = min_adj + i * period
         end = start + period
         #print('Range', start, end-1)
-        nodes = db.get_nodes_filter_time(start, end)
+        nodes = db_raw.get_nodes_filter_time(start, end)
         count_total = len(nodes)
         #print('Range', start, end-1, count_total)
         if count_total == 0:
@@ -120,7 +121,7 @@ def evaluate_periods(time_start, time_end, period):
                 #if avg_bal > 0:
                     #account = '0'  # hide print, just visual
                     #print(start, ep, count, avg_bal, account)
-            db.add_period_entries(period_entries)
+            db_compute.add_period_entries(period_entries)
 
     stop_time = time.time()
     get_logger().info('evaluate_periods dur ' + str(0.1 * int(10000.0 * (stop_time - start_time))) +  'ms')
@@ -133,7 +134,7 @@ def evaluate_periods(time_start, time_end, period):
 # 4600+375+25 MIK/day, min. 1M reserve; max 5 (total daily 23000)
 def __evaluate_daily(time_start):
     now = int(time.time())
-    daynodes = db.get_all_daily_sorted_filter_time(time_start)
+    daynodes = db_compute.get_all_daily_sorted_filter_time(time_start)
     print('Retrieved', len(daynodes), 'daily records')
     # Evaluate being online criteria
     for e in daynodes:
@@ -243,7 +244,7 @@ def __evaluate_daily(time_start):
 
     # Save result
     for e in daynodes:
-        db.update_daily_eligible(e['time_start'], e['ip'], e['eligible'], e['deny_reason'], e['reward_elig'])  # TODO key is it enough?
+        db_compute.update_daily_eligible(e['time_start'], e['ip'], e['eligible'], e['deny_reason'], e['reward_elig'])  # TODO key is it enough?
         # Print result
         #print('  ', time_start, e['time_end'], date_time_start.isoformat(), ip, eligible, deny_reason, count_pos, count_neg, avg_bal, e['port'], e['account'])
 
@@ -265,7 +266,7 @@ def evaluate_days(time_start, time_end):
     max_adj = int(max / period_day) * period_day
 
     # Do not evaluate period for which payment has already made, get latest sent time
-    latest_sent_time = db.get_daily_latest_sent_time()
+    latest_sent_time = db_compute.get_daily_latest_sent_time()
     #print('latest_sent_time', latest_sent_time)
     if latest_sent_time != 0:
         if min_adj <= latest_sent_time:
@@ -276,7 +277,7 @@ def evaluate_days(time_start, time_end):
     count = int((max_adj-min_adj)/period_day) + 1
     get_logger().info('Time range: ' + str(min_adj) + ' -- ' + str(max_adj) + ' ' + str(period_day) + ' count ' + str(count) + ' unadjusted ' + str(min) + ' - ' + str(max) + ' ' + str(max-min))
 
-    db.delete_daily_filter_time(min_adj)
+    db_compute.delete_daily_filter_time(min_adj)
 
     period = 600
     periods_per_day = int(period_day / period)
@@ -295,7 +296,7 @@ def evaluate_days(time_start, time_end):
             start = day_start + j * period
             end = start + period
             #print('Range', start, end-1, period)
-            nodes = db.get_nodes_period_filter_time(start, end)
+            nodes = db_compute.get_nodes_period_filter_time(start, end)
             len_nodes = len(nodes)
             #print('Range', start, end-1, period, len_nodes)
             period_count_dict[j] = len_nodes
@@ -336,7 +337,7 @@ def evaluate_days(time_start, time_end):
             start = day_start + j * period
             end = start + period
             #print('Period', j, start, end-1, period)
-            nodes = db.get_nodes_period_filter_time(start, end)
+            nodes = db_compute.get_nodes_period_filter_time(start, end)
             len_nodes = len(nodes)
             if len_nodes > 0:
                 #print('DEBUG', j, 'len_nodes', len_nodes)
@@ -379,7 +380,7 @@ def evaluate_days(time_start, time_end):
             if node_dict[ip]['port2'] != 0:
                 port = port + '_' + str(node_dict[ip]['port2'])
             #print('  ', ip, count_pos, count_neg, period_cnt_nonempty, avg_bal, port, node_dict[ip]['account'])
-            db.add_daily(day_start, day_end, ip, port, node_dict[ip]['account'], count_pos, count_neg, period_cnt_nonempty, avg_bal)
+            db_compute.add_daily(day_start, day_end, ip, port, node_dict[ip]['account'], count_pos, count_neg, period_cnt_nonempty, avg_bal)
     # end days cycle
 
     __evaluate_daily(min_adj)
@@ -391,14 +392,14 @@ def evaluate_days(time_start, time_end):
 
 # Dump all raw data
 def dump_raw():
-    nodes = db.get_all_nodes_unordered()
+    nodes = db_raw.get_all_nodes_unordered()
     print(str(len(nodes)) + " nodes")
     for n in nodes:
         print(int(n['time_sec']), n['ip'], n['port'], n['balance'], n['account'], n['obs_srv'], sep=', ')
 
 # Print aggregated data, by periods
 def dump_aggregated_period():
-    ret = db.get_all_period_sorted()
+    ret = db_compute.get_all_period_sorted()
     print('Retrieved', len(ret), 'period records')
     for e in ret:
         time_start = int(e['time_start'])
@@ -430,7 +431,7 @@ def dump_aggregated_daily(time_start_rel_day):
     time_start0 = now - time_start_rel_day * 24 * 3600
     #print(time_start0)
 
-    ret = db.get_all_daily_sorted_filter_time_rev(time_start0 - 24 * 3600)
+    ret = db_compute.get_all_daily_sorted_filter_time_rev(time_start0 - 24 * 3600)
     print('Retrieved', len(ret), 'daily records')
     print('Eligible nodes:')
     for e in ret:
