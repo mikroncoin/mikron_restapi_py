@@ -12,7 +12,7 @@ function load() {
     document.getElementById("d_history").innerHTML = "Latest Transactions:<p/><table>" + historyHeader() + "<tr><td colspan='6'>(loading...)</td></tr></table>"
 
     callGetUrl(/*serviceBaseUrl + */"/account/balance/" + account, (text) => document.getElementById('lb_balance').innerText = text + " MIK");
-    getHistory(account);
+    getHistory(account, 0);
 
     load_header();
 }
@@ -55,13 +55,13 @@ function callGetUrl(url, callback) {
     http.send();
 }
 
-function getHistory(account) {
-    var url = /*serviceBaseUrl + */"/account/history/" + account;
+function getHistory(account, page) {
+    var url = /*serviceBaseUrl + */"/account/history/" + account + "/" + page;
     var http = new XMLHttpRequest();
     http.onreadystatechange = function() {
         if (http.readyState == XMLHttpRequest.DONE) {
             if (http.status == 200) {
-                loadHistory(http.response)
+                loadHistory(http.response, page)
             }
             else if (http.status == 400) {
                 console.log('There was an error 400 ' + url);
@@ -73,6 +73,10 @@ function getHistory(account) {
     };
     http.open("GET", url, true);
     http.send();
+}
+
+function getHistoryPage(page) {
+    getHistory(account, page);
 }
 
 function loadHistoryRow(history_row) {
@@ -97,7 +101,19 @@ function historyHeader() {
     return "<tr><td><i>type</i></td><td><i>date</i></td><td><i>amount (MIK)</i></td><td><i>balance (MIK)</i></td><td><i>from/to</i></td><td><i>block hash</i></td></tr>";
 }
 
-function loadHistory(history_raw) {
+function paging_links(page, hasmore) {
+    paginglinks = "";
+    if (page > 0 || hasmore) {
+        paginglinks += "<label>page " + page + "&nbsp;</label>";
+        paginglinks += "<button onclick='getHistoryPage(0)'>&lt;&lt;</button>";
+        paginglinks += "<button onclick='getHistoryPage(" + (page-1) + ")'" + ((page == 0) ? " disabled" : "") + ">&lt;</button>";
+        paginglinks += "<button onclick='getHistoryPage(" + (page+1) + ")'" + ((hasmore) ? "" : " disabled") + ">&gt;</button>";
+        paginglinks += "<p/>";
+    }
+    return paginglinks;
+}
+
+function loadHistory(history_raw, page) {
     hist_json = JSON.parse(history_raw);
     //console.log(hist_json);
     if (!('history' in hist_json)) {
@@ -110,6 +126,15 @@ function loadHistory(history_raw) {
         return;
     }
     var hist_html = "Latest Transactions:</p><table>";
+
+    // paging links
+    hasmore = false;
+    if ("previous" in hist_json) {
+        hasmore = true;
+    }
+    paginglinks = paging_links(page, hasmore);
+    hist_html += paginglinks;
+
     // header
     hist_html += historyHeader();
     if (hist_json['history'].length == 0) {
@@ -119,7 +144,10 @@ function loadHistory(history_raw) {
             hist_html += loadHistoryRow(row);
         });
     }
-    hist_html += "</table>";
+    hist_html += "</table><p/>";
+
+    hist_html += paginglinks;
+
     document.getElementById("d_history").innerHTML = hist_html;
 }
 

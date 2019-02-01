@@ -18,7 +18,8 @@ from bottle import run
 config = config.readConfig()
 
 # Recevier status, initial check in background
-recv_setup.setup_check_async()
+if config['receiver_service.enabled'] == 'true':
+    recv_setup.setup_check_async()
 
 print('listen.host', config['listen.host'])
 print('listen.port', config['listen.port'])

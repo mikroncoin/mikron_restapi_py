@@ -67,8 +67,8 @@ def getAccountHistory(account_id):
 def getAccountHistoryPage(account_id, page):
     pagesize = 50
     offset = 0
-    if page >= 1:
-        offset = (page - 1) * pagesize
+    if int(page) >= 1:
+        offset = int(page) * pagesize
     history = node_rpc_helper.getAccountHistory(account_id, pagesize, offset)
     setHeaders()
     return history
