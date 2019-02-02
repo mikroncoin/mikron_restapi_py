@@ -144,24 +144,23 @@ def get_nodes_filter_time(start, end):
     dbnames, defaultdbname = __get_db_names_from_times(start, end)
     #print("DB2", defaultdbname, dbnames)
     ret = []
-    haderror = False
+    we_tried_default = False
     for db1 in dbnames:
         try:
             ret1 = get_nodes_filter_time1(db1, start, end)
             for r in ret1:
                 ret.append(r)
         except Exception as e:
-            haderror = True
             get_logger().error("Error in sub-query, db1 " + str(db1) + ", ignoring, " + str(e))
-    #print("haderror", haderror)
-    if haderror:
-        try:
-            ret1 = get_nodes_filter_time1(defaultdbname, start, end)
-            for r in ret1:
-                ret.append(r)
-        except Exception as e:
-            haderror = True
-            get_logger().error("Error in default sub-query, db1 " + str(defaultdbname) + ", ignoring, " + str(e))
+            if not we_tried_default:
+                we_tried_default = True
+                get_logger().info("Trying default DB, " + str(defaultdbname))
+                try:
+                    ret1 = get_nodes_filter_time1(defaultdbname, start, end)
+                    for r in ret1:
+                        ret.append(r)
+                except Exception as e:
+                    get_logger().error("Error in default sub-query, " + str(defaultdbname) + ", ignoring, " + str(e))
     #now2 = time.time()
     #print('get_nodes_filter_time', end - start, 0.1 * int(10000 * (now2 - now)), 'ms', now, now2)
     return ret
