@@ -10,6 +10,37 @@ def get_logger():
     """
     return logging.getLogger(__name__)
 
+def __db_name_default():
+    return 'noderaw_db.db'
+
+def __db_name_suffix_from_time(time):
+    return int(time / 86400)
+
+def __db_name_suffixes_from_times(time_from, time_to):
+    idx1 = int(time_from / 86400)
+    idx2 = int(time_to / 86400)
+    suffixes = [idx1]
+    if idx2 > idx1:
+        for i in range(0, idx2 - idx1):
+            suffixes.append(idx1 + i + 1)
+    return suffixes
+
+def __db_name_with_suffix(suffix):
+    return 'noderaw_db_' + str(suffix) + '.db'
+
+def __get_db_name_time(time):
+    return __db_name_with_suffix(__db_name_suffix_from_time(time))
+
+# returns the list of db names for the given time range (both inclusive), plus a default
+def __get_db_names_from_times(time_from, time_to):
+    suffixes = __db_name_suffixes_from_times(time_from, time_to)
+    names = []
+    for s in suffixes:
+        names.append(__db_name_with_suffix(s))
+    defname = __db_name_default()
+    return (names, defname)
+
+# TODO del
 def get_db_name_noderaw():
     return 'noderaw_db.db'
 
@@ -28,8 +59,8 @@ def close(conn):
     conn.commit()
     conn.close()
 
-def create_db_noderaw():
-    c, conn = connect(get_db_name_noderaw())
+def create_db_noderaw_dbname(dbname):
+    c, conn = connect(dbname)
     #        obs_srv text,      # observer service
     #        obs_firewall int,  # observer service behind firewall (1) or not (0)
     #        ip text,           # node endpoint IP
@@ -45,11 +76,11 @@ def create_db_noderaw():
             account text,
             balance text
             )''')
-    get_logger().info("DB table noderaw created")
+    get_logger().info("DB table noderaw created, " + dbname)
     close(conn)
 
-def save_node(time, obs_srv, obs_firewall, host, port, account, balance):
-    c, conn = connect(get_db_name_noderaw())
+def save_node1(dbname, time, obs_srv, obs_firewall, host, port, account, balance):
+    c, conn = connect(dbname)
     sql_command = "INSERT INTO noderaw VALUES ('"+\
         str(time) + "', '"+\
         str(obs_srv) + "', '" +\
@@ -66,12 +97,23 @@ def save_node(time, obs_srv, obs_firewall, host, port, account, balance):
 
     close(conn)
 
+def save_node(time, obs_srv, obs_firewall, host, port, account, balance):
+    dbname = __get_db_name_time(time)
+    try:
+        save_node1(dbname, time, obs_srv, obs_firewall, host, port, account, balance)
+    except Exception as e:
+        # try creating table
+        try:
+            get_logger().error("Could not save nodes, maybe table does not exits, DB: " + str(dbname) + " e: " + str(e))
+            create_db_noderaw_dbname(dbname)
+            save_node1(dbname, time, obs_srv, obs_firewall, host, port, account, balance)
+        except Exception as e2:
+            get_logger().error("Could not save node to DB " + str(dbname) + " e: " + str(e2))
+
+# without time range, should not be used
 def get_all_nodes_unordered():
-    c, conn = connect(get_db_name_noderaw())
-    c.execute("SELECT * FROM noderaw;")
-    ret = c.fetchall()
-    close(conn)
-    return ret
+    now = int(time.time())
+    return get_nodes_filter_time(now - 60 * 86400, now + 2 * 86400)
 
 # Get the min and max of the observed times
 '''
@@ -86,13 +128,40 @@ def get_min_max_time_raw():
     return ret
 '''
 
-# get entries, filtered by a time range
-def get_nodes_filter_time(start, end):
+def get_nodes_filter_time1(dbname, start, end):
     #now = time.time()
-    c, conn = connect(get_db_name_noderaw())
+    c, conn = connect(dbname)
     c.execute("SELECT * FROM noderaw WHERE time_sec >= " + str(start) + " AND time_sec < " + str(end) + ";")
     ret = c.fetchall()
     close(conn)
+    #now2 = time.time()
+    #print('get_nodes_filter_time1', dbname, end - start, 0.1 * int(10000 * (now2 - now)), 'ms', now, now2)
+    return ret
+
+# get entries, filtered by a time range
+def get_nodes_filter_time(start, end):
+    #now = time.time()
+    dbnames, defaultdbname = __get_db_names_from_times(start, end)
+    #print("DB2", defaultdbname, dbnames)
+    ret = []
+    haderror = False
+    for db1 in dbnames:
+        try:
+            ret1 = get_nodes_filter_time1(db1, start, end)
+            for r in ret1:
+                ret.append(r)
+        except Exception as e:
+            haderror = True
+            get_logger().error("Error in sub-query, db1 " + str(db1) + ", ignoring, " + str(e))
+    #print("haderror", haderror)
+    if haderror:
+        try:
+            ret1 = get_nodes_filter_time1(defaultdbname, start, end)
+            for r in ret1:
+                ret.append(r)
+        except Exception as e:
+            haderror = True
+            get_logger().error("Error in default sub-query, db1 " + str(defaultdbname) + ", ignoring, " + str(e))
     #now2 = time.time()
     #print('get_nodes_filter_time', end - start, 0.1 * int(10000 * (now2 - now)), 'ms', now, now2)
     return ret
