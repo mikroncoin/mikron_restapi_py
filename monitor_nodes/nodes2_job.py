@@ -51,7 +51,7 @@ def start_job():
                 evaluate_period_last_finished = now
                 get_logger().info('Done evaluate_periods ' + str(now) + ' dur ' + str(evaluate_period_last_finished - evaluate_period_last_started))
 
-                if (now - evaluate_daily_last_started) >= 2*3600:
+                if (now - evaluate_daily_last_started) >= 1*3600:
                     # evaluate days now
                     period_day = 24 * 3600
                     now_day = int(now / period_day) * period_day
