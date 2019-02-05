@@ -29,9 +29,9 @@ def __db_name_with_suffix(suffix):
     return 'noderaw_db_' + str(suffix) + '.db'
 
 def __get_db_name_time(time):
-    # For smooth transition, 17932 Feb 5 Tue, 17932 * 86400 = 1549324800
-    if time < 1549324800:
-        return __db_name_default()
+    # No need for transition any more...  17932 Feb 5 Tue, 17932 * 86400 = 1549324800
+    #if time < 1549324800:
+    #    return __db_name_default()
     return __db_name_with_suffix(__db_name_suffix_from_time(time))
 
 # returns the list of db names for the given time range (both inclusive), plus a default
