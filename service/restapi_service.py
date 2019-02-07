@@ -1,5 +1,6 @@
 import account_helper
 import node_rpc_helper
+import cache
 
 import os
 import json
@@ -17,7 +18,14 @@ def setHeaders():
 def getBlockCount():
     count = ''
     try:
-        count = node_rpc_helper.getBlockCount();
+        cached = cache.get_cache_entry('blocks/count')
+        if cached != None:
+            #print("Found in cache", cached)
+            count = cached
+        else:
+            count = node_rpc_helper.getBlockCount();
+            cache.add_cache_entry('blocks/count', count, 60)
+            #print("Put in cache", count)
     except:
         count = 'ERROR'
     setHeaders()
@@ -37,7 +45,12 @@ def getBlockCountUnchecked():
 def getFrontierCount():
     count = ''
     try:
-        count = node_rpc_helper.getFrontierCount();
+        cached = cache.get_cache_entry('frontiers/count')
+        if cached != None:
+            count = cached
+        else:
+            count = node_rpc_helper.getFrontierCount();
+            cache.add_cache_entry('frontiers/count', count)
     except:
         count = 'ERROR'
     setHeaders()
@@ -84,18 +97,24 @@ def getBlock(block_hash):
 def getPeerCount():
     count = '0'
     try:
-        peers = node_rpc_helper.getPeers()
-        print(peers)
-        print(type(peers))
-        if ((type(peers) is str) and peers == ''):
-            # empty peer list, valid
-            count = '0'
+        cached = cache.get_cache_entry('peers/count')
+        if cached != None:
+            count = cached
         else:
-            if (type(peers) is not dict) and (type(peers) is not list):
-                return peers
-            count = str(len(peers))
+            peers = node_rpc_helper.getPeers()
+            #print(peers)
+            #print(type(peers))
+            if ((type(peers) is str) and peers == ''):
+                # empty peer list, valid
+                count = '0'
+            else:
+                if (type(peers) is not dict) and (type(peers) is not list):
+                    count = 0
+                else:
+                    count = str(len(peers))
+            cache.add_cache_entry('peers/count', count, 60)
     except:
-        count ='ERROR'
+        count = 'ERROR'
     setHeaders()
     return count
 
