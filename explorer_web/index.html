@@ -9,6 +9,8 @@ function refresh() {
     callGetUrl('/blocks/count', (text) => document.getElementById('block_count').innerText = text);
     //document.getElementById('frontier_count').innerText = '?';
     callGetUrl('/frontiers/count', (text) => document.getElementById('frontier_count').innerText = text);
+
+    callGetUrl('/accounts/top/50', (text) => loadAccountsTop(text));
     callGetUrl('/frontiers/last/20', (text) => loadFrontiers(text));
 }
 
@@ -61,6 +63,21 @@ function search_account() {
     http.send();
 }
 
+function loadAccountsTop(accounts_text) {
+    accounts = JSON.parse(accounts_text);
+    var list = "<table><tr><td><i>Account</i></td><td><i>Balance (MIK)</i></td></tr>";
+    console.log(accounts);
+    for (var acc in accounts) {
+        console.log(acc);
+        console.log(accounts[acc]);
+        balance = accounts[acc].balance;
+        list += "<tr><td><a href='/explorer/account/" + acc + "'>" + acc.substring(0, 15) +
+            "...</a></td><td>" + balance + "</td></tr>";
+    }
+    list += "</table>";
+    document.getElementById('accounts_top_list').innerHTML = list;
+}
+
 function loadFrontiers(frontiers_text) {
     frontiers = JSON.parse(frontiers_text);
     var list = "<table><tr><td><i>Account</i></td><td><i>Block</i></td></tr>";
@@ -102,7 +119,11 @@ function loadFrontiers(frontiers_text) {
                 <button onclick="search_account()">Search</button>
             </div>
             <div>
-                Selected Frontier accounts:
+                <h2>Top accounts:</h2>
+                <div id="accounts_top_list">-</div>
+            </div>
+            <div>
+                (Some Frontier accounts:)
                 <div id="frontier_list">-</div>
             </div>
         </div>

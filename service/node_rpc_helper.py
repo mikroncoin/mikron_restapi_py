@@ -223,6 +223,7 @@ def getPeers():
 def getFrontiers(count):
     global rai
     try:
+        count = min(50, int(count))
         frontiers = rai.frontiers({"account": "mik_1111111111111111111111111111111111111111111111111111hifc8npp", "count": count})
         #print(frontiers)
         if frontiers is None:
@@ -234,6 +235,31 @@ def getFrontiers(count):
     except:
         return 'ERROR'
     return frontiers['frontiers']
+
+def getAccountsTop(count):
+    global rai
+    try:
+        count = min(50, int(count))
+        ledger = rai.ledger({
+            "account": "mik_1111111111111111111111111111111111111111111111111111hifc8npp",
+            "sorting": "true",
+            "count": count
+        })
+        #print(ledger)
+        if ledger is None:
+            return 'ERROR'
+        if 'error' in ledger:
+            return 'ERROR: ' + ledger['error']
+        if 'accounts' not in ledger:
+            return 'ERROR'
+    except:
+        return 'ERROR'
+    # Unit conversions
+    for acc in ledger['accounts']:
+        if 'balance' in ledger['accounts'][acc]:
+            balMik = account_helper.fromRawToMikron(ledger['accounts'][acc]['balance'])
+            ledger['accounts'][acc]['balance'] = balMik
+    return ledger['accounts']
 
 def doSend(src_walletid, src_account, dest_account, amount, unique_id):
     global rai
