@@ -66,7 +66,13 @@ def getFrontiers(count):
 @route('/accounts/top/<count>', method='GET')
 def getAccountsTop(count):
     count = min(50, int(count))
-    accounts = node_rpc_helper.getAccountsTop(count)
+    cached_key = '/accounts/top/' + str(count);
+    cached = cache.get_cache_entry(cached_key)
+    if cached != None:
+        accounts = cached
+    else:
+        accounts = node_rpc_helper.getAccountsTop(count)
+        cache.add_cache_entry(cached_key, accounts, 60)
     setHeaders()
     return accounts
 
