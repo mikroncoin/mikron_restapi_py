@@ -86,7 +86,10 @@ function loadBlock(block_raw) {
     var account = block_json.account;
     var type = block_json.type;
     var amount = parseInt(block_json.amount);
-    var amount_sign = parseInt(block_json.amount_sign);
+    var amount_sign = 1;
+    if (typeof block_json.amount_sign != 'undefined') {
+        amount_sign = parseInt(block_json.amount_sign);
+    }
     var amount_signed = amount_sign * amount;
     h = "";
     h += "Hash: " + block_hash + "<p/>";
