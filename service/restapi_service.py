@@ -89,8 +89,12 @@ def getAccountHistoryPage(account_id, page):
 # Example: curl http://localhost:8090/block/8884FF53AE28F1DD5499F78733FC1A075864FFC428CEEC9A9C8A4ECCA98BB134
 @route('/block/<block_hash>', method='GET')
 def getBlock(block_hash):
-    block = node_rpc_helper.getBlock(block_hash)
+    block = node_rpc_helper.getBlockInfo(block_hash)
     setHeaders()
+    # return the contents
+    if 'contents' in block:
+        return block['contents']
+    # fallback
     return block
 
 @route('/peers/count', method='GET')

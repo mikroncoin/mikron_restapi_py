@@ -155,6 +155,56 @@ def getBlock(block_hash):
         bc['balance'] = balMik
     return bc
 
+def getBlockInfo(block_hash):
+    blocks = getBlockInfos([block_hash])
+    # take out this block
+    if 'blocks' in blocks:
+        if block_hash in blocks['blocks']:
+            return blocks['blocks'][block_hash]
+    # fallback
+    return blocks
+
+# Get extended block info, for multiple blocks
+def getBlockInfos(block_hash_array):
+    global rai
+    try:	
+        #print("getBlockInfos ", block_hash_array)
+        blocks = rai.blocks_info({"hashes": block_hash_array})
+        #print(blocks)
+    except:
+        return {"error": "exception"}
+    try:
+        if blocks is None:
+            return {"error": "empty response"}
+        if 'error' in blocks:
+            return {"error": blocks['error']}
+        if 'blocks' not in blocks:
+            return {"error": "Missing blocks"}
+    except:
+        return {"error": "error"}
+    # Unit conversions
+    for block_hash in blocks['blocks']:
+        block = blocks['blocks'][block_hash]
+        amountMik = 0
+        if 'amount' in block:
+            amountMik = account_helper.fromRawToMikron(block['amount'])
+            block['amount'] = amountMik
+        if 'contents' in block:
+            cont_str = block['contents']
+            cont = json.loads(cont_str)
+            if 'balance' in cont:
+                balMik = account_helper.fromRawToMikron(cont['balance'])
+                cont['balance'] = balMik
+            # copy over the amount and amount_sign to the contents
+            if 'amount' in block:
+                cont['amount'] = amountMik
+            if 'amount_sign' in block:
+                cont['amount_sign'] = block['amount_sign']
+            # replace string contents with Json
+            block['contents'] = ''
+            block['contents'] = cont
+    return blocks
+
 def getPeers():
     global rai
     try:
