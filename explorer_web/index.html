@@ -34,31 +34,42 @@ function callGetUrl(url, callback) {
     http.send();
 }
 
-function search_account() {
-    var account = document.getElementById("in_account").value;
-    console.log(account)
-    var url = /*serviceBaseUrl + */"/account/balance/" + account;
-    var http = new XMLHttpRequest();
-    http.onreadystatechange = function() {
-        if (http.readyState == XMLHttpRequest.DONE) {
-            if (http.status == 200) {
-                if (http.responseText.toLowerCase().indexOf('error') >= 0) {
-                    console.log("Error: " + http.responseText);
-                } else {
-                    // account exists, jump to it
-                    url_account = "/explorer/account/" + account;
-                    console.log(url_account);
-                    document.location.href = url_account;
+function search_account_or_hash() {
+    var account_or_hash = document.getElementById("in_account").value;
+    account_or_hash = account_or_hash.trim();
+    console.log(account_or_hash);
+    if (account_or_hash.startsWith("mik")) {
+        // Look for account
+        var url = /*serviceBaseUrl + */"/account/balance/" + account_or_hash;
+        var http = new XMLHttpRequest();
+        http.onreadystatechange = function() {
+            if (http.readyState == XMLHttpRequest.DONE) {
+                if (http.status == 200) {
+                    if (http.responseText.toLowerCase().indexOf('error') >= 0) {
+                        console.log("Error: " + http.responseText);
+                    } else {
+                        // account exists, jump to it
+                        url_account = "/explorer/account/" + account_or_hash;
+                        console.log(url_account);
+                        document.location.href = url_account;
+                    }
+                }
+                else if (http.status == 400) {
+                    console.log('There was an error 400 ' + url);
+                }
+                else {
+                    console.log('Something else other than 200 was returned ' + http.status + ' ' + url);
                 }
             }
-            else if (http.status == 400) {
-                console.log('There was an error 400 ' + url);
-            }
-            else {
-                console.log('Something else other than 200 was returned ' + http.status + ' ' + url);
-            }
-        }
-    };
+        };
+    }
+    else
+    {
+        // Look for block hash
+        url_hash = "/explorer/block/" + account_or_hash;
+        console.log(url_hash);
+        document.location.href = url_hash;
+    }
     http.open("GET", url, true);
     http.send();
 }
@@ -66,10 +77,10 @@ function search_account() {
 function loadAccountsTop(accounts_text) {
     accounts = JSON.parse(accounts_text);
     var list = "<table><tr><td><i>Account</i></td><td><i>Balance (MIK)</i></td></tr>";
-    console.log(accounts);
+    //console.log(accounts);
     for (var acc in accounts) {
-        console.log(acc);
-        console.log(accounts[acc]);
+        //console.log(acc);
+        //console.log(accounts[acc]);
         balance = accounts[acc].balance;
         list += "<tr><td><a href='/explorer/account/" + acc + "'>" + acc.substring(0, 15) +
             "...</a></td><td>" + balance + "</td></tr>";
@@ -113,10 +124,10 @@ function loadFrontiers(frontiers_text) {
                 <button onclick='refresh()'>Refresh</button>
             </div>
             <div>
-                Search for Account: 
+                Search for Account or Block Hash: 
                 </p>
-                <input id="in_account" type="text" size="80" value="(enter account)"/>
-                <button onclick="search_account()">Search</button>
+                <input id="in_account" type="text" size="80" value="(enter Account or Block Hash) "/>
+                <button onclick="search_account_or_hash()">Search</button>
             </div>
             <div>
                 <h2>Top accounts:</h2>
