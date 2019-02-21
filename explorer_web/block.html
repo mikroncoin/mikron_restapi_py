@@ -72,6 +72,24 @@ function getBlock(block_hash) {
     http.send();
 }
 
+function niceAge(raw_creation_time, date_str) {
+    var date_raw = parseInt(raw_creation_time);
+    var age_sec = Date.now()/1000 - date_raw;
+    console.log(age_sec)
+    if (age_sec < 60) {
+        return (Math.floor(10*age_sec)/10) + " seconds";
+    }
+    min = Math.floor(age_sec/60)
+    if (min < 60) {
+        return min + " min " + (age_sec - min*60) + " seconds";
+    }
+    hour = Math.floor(min/60);
+    if (hour < 24) {
+        return hour + " hr " + (Math.floor(10*(age_sec/60 - 60*hour))/10) + " min ";
+    }
+    return date_str;
+}
+
 function loadBlock(block_raw) {
     block_json = JSON.parse(block_raw);
     if (block_json.error != undefined) {
@@ -91,25 +109,27 @@ function loadBlock(block_raw) {
         amount_sign = parseInt(block_json.amount_sign);
     }
     var amount_signed = amount_sign * amount;
-    h = "";
-    h += "Hash: " + block_hash + "<p/>";
+    h = "<table>";
+    h += "<tr><td>Hash</td><td>" + block_hash + "</td></tr>";
     //console.log(block_json.type);
-    h += "Type: <b>" + type + "</b><p/>";
-    h += "Account: <a href='/explorer/account/" + account + "'>" + account + "</a><p/>";
-    h += "Amount: <b>" + amount_signed + " MIK</b><p/>";
-    h += "Balance: <b>" + block_json.balance + " MIK</b><p/>";
-    h += "Date: " + block_json.creation_time_as_date + "<p/>";
+    h += "<tr><td>Type</td><td><b>" + type + "</b></td></tr>";
+    h += "<tr><td>Account</td><td><a href='/explorer/account/" + account + "'>" + account + "</a></td></tr>";
+    h += "<tr><td>Amount</td><td><b>" + amount_signed + " MIK</b></td></tr>";
+    h += "<tr><td>Balance</td><td><b>" + block_json.balance + " MIK</b></td></tr>";
+    h += "<tr><td>Age</td><td>" + niceAge(block_json.creation_time, block_json.creation_time_as_date) + "</td></tr>";
+    h += "<tr><td>Date</td><td>" + block_json.creation_time_as_date + "</td></tr>";
     if (type == "state") {
         if (amount_sign == 1) {
-            h += "Receive from (link as hash): <a href='/explorer/block/" + block_json.link + "'>" + block_json.link + "</a><p/>";
+            h += "<tr><td>Receive from (link as hash)</td><td><a href='/explorer/block/" + block_json.link + "'>" + block_json.link + "</a></td></tr>";
         }
         if (amount_sign == -1) {
-            h += "Send to (link as account): <a href='/explorer/account/" + block_json.link_as_account + "'>" + block_json.link_as_account + "</a><p/>";
+            h += "<tr><td>Send to (link as account)</td><td><a href='/explorer/account/" + block_json.link_as_account + "'>" + block_json.link_as_account + "</a></td></tr>";
         }
     }
-    h += "Previous: <a href='/explorer/block/" + block_json.previous + "'>" + block_json.previous + "</a><p/>";
-    h += "Representative: <a href='/explorer/account/" + block_json.representative + "'>" + block_json.representative + "</a><p/>";
-    h += "Work: " + block_json.work + "<p/>";
+    h += "<tr><td>Previous</td><td><a href='/explorer/block/" + block_json.previous + "'>" + block_json.previous + "</a></td></tr>";
+    h += "<tr><td>Representative</td><td><a href='/explorer/account/" + block_json.representative + "'>" + block_json.representative + "</a></td></tr>";
+    h += "<tr><td>Work</td><td>" + block_json.work + "</td></tr>";
+    h += "</table>"
     document.getElementById("block_data").innerHTML = h;
 }
         </script>

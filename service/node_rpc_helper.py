@@ -195,6 +195,8 @@ def getBlockInfos(block_hash_array):
             if 'balance' in cont:
                 balMik = account_helper.fromRawToMikron(cont['balance'])
                 cont['balance'] = balMik
+            if 'creation_time' in cont:
+                cont['creation_time'] = 1535760000 + int(cont['creation_time'])
             # copy over the amount and amount_sign to the contents
             if 'amount' in block:
                 cont['amount'] = amountMik

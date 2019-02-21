@@ -75,7 +75,9 @@ function search_account_or_hash() {
     http.send();
 }
 
-function niceAge(age_sec, date_str) {
+function niceAge(raw_creation_time) {
+    var date_raw = parseInt(raw_creation_time);
+    var age_sec = Date.now()/1000 - date_raw;
     if (age_sec < 60) {
         return (Math.floor(10*age_sec)/10) + " seconds";
     }
@@ -89,6 +91,7 @@ function niceAge(age_sec, date_str) {
     }
     return date_str;
 }
+
 function loadAccountsRecent(blocks_text) {
     blocks = JSON.parse(blocks_text);
     var list = "<table><tr><td><i>Account</i></td><td><i>Amount (MIK)</i></td><td><i>Age/Date</i></td></tr>";
@@ -105,9 +108,7 @@ function loadAccountsRecent(blocks_text) {
         }
         var amount_signed = amount_sign * amount;
         var date_string = block.contents.creation_time_as_date;
-        var date_raw = 1535760000 + parseInt(block.contents.creation_time);
-        var age_sec = now/1000 - date_raw;
-        var age_nice = niceAge(age_sec, date_string);
+        var age_nice = niceAge(block.contents.creation_time, date_string);
         list += "<tr><td><a href='/explorer/block/" + b + "'>" + acc.substring(0, 15) +
             "...</a></td><td><b>" + amount_signed + "</b></td><td>" + age_nice + "</td></tr>";
     }
