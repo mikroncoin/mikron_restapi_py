@@ -96,9 +96,12 @@ def sendIntern(src_account, src_walletid, dest_account, amount, unique_id, max_a
 
 def sendInternWithCallback(src_account, src_walletid, dest_account, amount, unique_id, max_amount, min_amount, callback):
     result = sendIntern(src_account, src_walletid, dest_account, amount, unique_id, max_amount, min_amount)
-    invokeSendCallback(callback, result)
+    invokeSendCallback(callback, result, unique_id)
 
-def invokeSendCallback(callback, result):
+def invokeSendCallback(callback, result, id):
+    # include ID in callback always
+    if 'id' not in result:
+        result['id'] = id
     print('Invoking send callback', callback, 'with result data', result)
     postdata = json.dumps(result)
     response = requests.post(callback, data=postdata)
