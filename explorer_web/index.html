@@ -75,7 +75,7 @@ function search_account_or_hash() {
     http.send();
 }
 
-function niceAge(raw_creation_time) {
+function niceAge(raw_creation_time, date_str) {
     var date_raw = parseInt(raw_creation_time);
     var age_sec = Date.now()/1000 - date_raw;
     if (age_sec < 60) {
