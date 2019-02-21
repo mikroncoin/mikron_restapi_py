@@ -123,12 +123,12 @@ def sample_send_callback():
     postjson = json.loads(postdata.replace("'", '"'))
     #print("postjson ", postjson)
 
+    id = ''
+    if 'id' in postjson:
+        id = postjson['id']
     if 'error' in postjson:
-        print('Send callback', 'ERROR', postjson['error'])
+        print('Send callback', 'id', id, 'ERROR', postjson['error'])
     else:
-        id = ''
-        if 'id' in postjson:
-            id = postjson['id']
         amount = 0
         if 'amount' in postjson:
             amount = postjson['amount']
