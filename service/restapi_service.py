@@ -76,6 +76,19 @@ def getAccountsTop(count):
     setHeaders()
     return accounts
 
+@route('/accounts/recent/<count>', method='GET')
+def getAccountsRecent(count):
+    count = min(10, int(count))
+    cached_key = '/accounts/recent/' + str(count);
+    cached = cache.get_cache_entry(cached_key)
+    if cached != None:
+        accounts = cached
+    else:
+        accounts = node_rpc_helper.getAccountsRecent(count)
+        cache.add_cache_entry(cached_key, accounts, 15)
+    setHeaders()
+    return accounts
+
 # Example: curl http://localhost:8090/account/balance/mik_1naij1wkner3gb6j4o1tsf4me3zz8q9t1km9wnm5qzmnycfa44t8tkbq4srs
 @route('/account/balance/<account_id>', method='GET')
 def getAccountBalance(account_id):

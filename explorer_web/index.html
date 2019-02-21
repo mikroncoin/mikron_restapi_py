@@ -10,8 +10,9 @@ function refresh() {
     //document.getElementById('frontier_count').innerText = '?';
     callGetUrl('/frontiers/count', (text) => document.getElementById('frontier_count').innerText = text);
 
-    callGetUrl('/accounts/top/50', (text) => loadAccountsTop(text));
-    callGetUrl('/frontiers/last/20', (text) => loadFrontiers(text));
+    callGetUrl('/accounts/recent/50', (text) => loadAccountsRecent(text));
+    callGetUrl('/accounts/top/30', (text) => loadAccountsTop(text));
+    //callGetUrl('/frontiers/last/20', (text) => loadFrontiers(text));
 }
 
 function callGetUrl(url, callback) {
@@ -74,6 +75,46 @@ function search_account_or_hash() {
     http.send();
 }
 
+function niceAge(age_sec, date_str) {
+    if (age_sec < 60) {
+        return (Math.floor(10*age_sec)/10) + " seconds";
+    }
+    min = Math.floor(age_sec/60)
+    if (min < 60) {
+        return min + " min " + (age_sec - min*60) + " seconds";
+    }
+    hour = Math.floor(min/60);
+    if (hour < 24) {
+        return hour + " hr " + (Math.floor(10*(age_sec/60 - 60*hour))/10) + " min ";
+    }
+    return date_str;
+}
+function loadAccountsRecent(blocks_text) {
+    blocks = JSON.parse(blocks_text);
+    var list = "<table><tr><td><i>Account</i></td><td><i>Amount (MIK)</i></td><td><i>Age/Date</i></td></tr>";
+    var now = Date.now();
+    //console.log(accounts);
+    for (var b in blocks) {
+        block = blocks[b];
+        //console.log(block);
+        var acc = block.block_account;
+        var amount = parseInt(block.amount);
+        var amount_sign = 1;
+        if (typeof block.amount_sign != 'undefined') {
+            amount_sign = parseInt(block.amount_sign);
+        }
+        var amount_signed = amount_sign * amount;
+        var date_string = block.contents.creation_time_as_date;
+        var date_raw = 1535760000 + parseInt(block.contents.creation_time);
+        var age_sec = now/1000 - date_raw;
+        var age_nice = niceAge(age_sec, date_string);
+        list += "<tr><td><a href='/explorer/block/" + b + "'>" + acc.substring(0, 15) +
+            "...</a></td><td><b>" + amount_signed + "</b></td><td>" + age_nice + "</td></tr>";
+    }
+    list += "</table>";
+    document.getElementById('transactions_recent_list').innerHTML = list;
+}
+
 function loadAccountsTop(accounts_text) {
     accounts = JSON.parse(accounts_text);
     var list = "<table><tr><td><i>Account</i></td><td><i>Balance (MIK)</i></td></tr>";
@@ -89,6 +130,7 @@ function loadAccountsTop(accounts_text) {
     document.getElementById('accounts_top_list').innerHTML = list;
 }
 
+/*
 function loadFrontiers(frontiers_text) {
     frontiers = JSON.parse(frontiers_text);
     var list = "<table><tr><td><i>Account</i></td><td><i>Block</i></td></tr>";
@@ -103,6 +145,7 @@ function loadFrontiers(frontiers_text) {
     list += "</table>";
     document.getElementById('frontier_list').innerHTML = list;
 }
+*/
         </script>
     </head>
     <body onload="refresh()">
@@ -130,12 +173,12 @@ function loadFrontiers(frontiers_text) {
                 <button onclick="search_account_or_hash()">Search</button>
             </div>
             <div>
-                <h2>Top accounts:</h2>
-                <div id="accounts_top_list">-</div>
+                <h2>Recent Transactions:</h2>
+                <div id="transactions_recent_list">-</div>
             </div>
             <div>
-                (Some Frontier accounts:)
-                <div id="frontier_list">-</div>
+                <h2>Top accounts:</h2>
+                <div id="accounts_top_list">-</div>
             </div>
         </div>
     </body>

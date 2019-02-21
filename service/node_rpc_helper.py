@@ -236,12 +236,12 @@ def getFrontiers(count):
         return 'ERROR'
     return frontiers['frontiers']
 
+# Top accounts by balance
 def getAccountsTop(count):
     global rai
     try:
         count = min(50, int(count))
         ledger = rai.ledger({
-            "account": "mik_1111111111111111111111111111111111111111111111111111hifc8npp",
             "sorting": "true",
             "count": count
         })
@@ -260,6 +260,43 @@ def getAccountsTop(count):
             balMik = account_helper.fromRawToMikron(ledger['accounts'][acc]['balance'])
             ledger['accounts'][acc]['balance'] = balMik
     return ledger['accounts']
+
+# Accounts with most recent transactions
+def getAccountsRecent(count):
+    global rai
+    try:
+        count = min(50, int(count))
+        # get accounts with most recent transactions
+        ledger = rai.ledger({
+            "sorting_by_time": "true",
+            "count": count
+        })
+        #print('ledger', ledger)
+        if ledger is None:
+            return 'ERROR'
+        if 'error' in ledger:
+            return 'ERROR: ' + ledger['error']
+        if 'accounts' not in ledger:
+            return 'ERROR'
+        #print(ledger['accounts'])
+        # take out frontier hashes
+        hashes = []
+        for acc in ledger['accounts']:
+            #print(acc)
+            if 'frontier' in ledger['accounts'][acc]:
+                hashes.append(ledger['accounts'][acc]['frontier'])
+        #print(hashes)
+        block_infos = {}
+        if len(hashes) > 0:
+            block_infos_raw = getBlockInfos(hashes)
+            #print(block_infos_raw)
+            if 'blocks' in block_infos_raw:
+                block_infos = block_infos_raw['blocks']
+        #print(block_infos)
+        return block_infos
+    except:
+        return 'ERROR'
+    return 'ERROR'
 
 def doSend(src_walletid, src_account, dest_account, amount, unique_id):
     global rai
