@@ -81,7 +81,7 @@ function niceAge(raw_creation_time, date_str) {
     }
     min = Math.floor(age_sec/60)
     if (min < 60) {
-        return min + " min " + (Math.floor(10*(age_sec - min*60))/10) + " seconds";
+        return min + " min " + (Math.floor(age_sec - min*60)) + " seconds";
     }
     hour = Math.floor(min/60);
     if (hour < 24) {

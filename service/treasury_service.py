@@ -78,6 +78,8 @@ def sendIntern(src_account, src_walletid, dest_account, amount, unique_id, max_a
         return {"error": "Amount too high (max " + str(max_amount) + ")"}
     if (amountFloat < min_amount):
         return {"error": "Amount too small (min " + str(min_amount) + ")"}
+    #if (amountFloat == 1.2345):
+    #    return {"error": "Refused due to test"}
     # debug: retrieve balance
     src_orig_balance = node_rpc_helper.getAccountBalance(src_account)
     print("sendIntern: orig src balance", src_orig_balance)
