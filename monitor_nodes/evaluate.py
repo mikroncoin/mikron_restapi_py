@@ -207,9 +207,9 @@ def __evaluate_daily(time_start):
     capped_count_level1 = max(count_level1, max_count_level1)
     capped_count_level2 = max(count_level2, max_count_level2)
     capped_count_level3 = max(count_level3, max_count_level3)
-    reward_level1 = (max_count_level1 * reward_level1) / float(capped_count_level1)
-    reward_level2 = (max_count_level2 * reward_level2) / float(capped_count_level2)
-    reward_level3 = (max_count_level3 * reward_level3) / float(capped_count_level3)
+    reward_level1 = round((max_count_level1 * reward_level1) / float(capped_count_level1), 2)
+    reward_level2 = round((max_count_level2 * reward_level2) / float(capped_count_level2), 2)
+    reward_level3 = round((max_count_level3 * reward_level3) / float(capped_count_level3), 2)
     # Print candidates per level, and rewards
     get_logger().info('Candidates in level 1: ' + str(count_level1) + ' (' + str(capped_count_level1) + ') rew ' + str(reward_level1) + ' (lim ' + str(limit_level1) + ')')
     get_logger().info('Candidates in level 2: ' + str(count_level2) + ' (' + str(capped_count_level2) + ') rew ' + str(reward_level2) + ' (lim ' + str(limit_level2) + ')')
