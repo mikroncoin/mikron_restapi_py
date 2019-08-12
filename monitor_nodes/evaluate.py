@@ -92,6 +92,7 @@ def evaluate_periods(time_start, time_end, period):
                         'count': 0, 
                         'sum_bal': 0, 
                         'account': n['account'],
+                        'net_version': n['net_version'],
                     }
                 #print('  ', endpoint, n['balance'])
                 entry = node_dict[endpoint]
@@ -116,7 +117,8 @@ def evaluate_periods(time_start, time_end, period):
                     'port': node_dict[ep]['port'],
                     'count': count,
                     'account': account,
-                    'avg_bal': avg_bal
+                    'avg_bal': avg_bal,
+                    'net_version': node_dict[ep]['net_version'],
                 })
                 #if avg_bal > 0:
                     #account = '0'  # hide print, just visual
@@ -322,7 +324,8 @@ def evaluate_days(time_start, time_end):
                         'sum_bal': 0.0,
                         'avg_bal': 0.0,
                         'eligible': 1,
-                        'deny_reason': 'OK'
+                        'deny_reason': 'OK',
+                        'net_version': e['net_version']
                     }
         #print('.')
         period_cnt_empty = periods_per_day - period_cnt_nonempty
@@ -380,7 +383,7 @@ def evaluate_days(time_start, time_end):
             if node_dict[ip]['port2'] != 0:
                 port = port + '_' + str(node_dict[ip]['port2'])
             #print('  ', ip, count_pos, count_neg, period_cnt_nonempty, avg_bal, port, node_dict[ip]['account'])
-            db_compute.add_daily(day_start, day_end, ip, port, node_dict[ip]['account'], count_pos, count_neg, period_cnt_nonempty, avg_bal)
+            db_compute.add_daily(day_start, day_end, ip, port, node_dict[ip]['account'], count_pos, count_neg, period_cnt_nonempty, avg_bal, node_dict[ip]['net_version'])
     # end days cycle
 
     __evaluate_daily(min_adj)
@@ -395,7 +398,10 @@ def dump_raw():
     nodes = db_raw.get_all_nodes_unordered()
     print(str(len(nodes)) + " nodes")
     for n in nodes:
-        print(int(n['time_sec']), n['ip'], n['port'], n['balance'], n['account'], n['obs_srv'], sep=', ')
+        net_version = 0
+        if ('net_version' in n):
+            net_version = n['net_version']
+        print(int(n['time_sec']), n['ip'], n['port'], n['balance'], n['account'], n['obs_srv'], net_version, sep=', ')
 
 # Print aggregated data, by periods
 def dump_aggregated_period():
@@ -409,12 +415,12 @@ def dump_aggregated_period():
         avg_bal = float(e['avg_bal'])
         # filter printout
         if count_tot > 0 and count > 0 and avg_bal > 0:
-            print('  ', time_start, e['time_end'], date_time_start.isoformat(), count_tot, e['ip'], e['port'], count, e['account'], avg_bal)
+            print('  ', time_start, e['time_end'], date_time_start.isoformat(), count_tot, e['ip'], e['port'], count, e['account'], avg_bal, e['net_version'])
     # CSV
     print('#CSV')
-    print('time_start, time_end, count_tot, ip, port, count, account, avg_bal')
+    print('time_start, time_end, count_tot, ip, port, count, account, avg_bal, net_version')
     for e in ret:
-        print(e['time_start'], ',', e['time_end'], ',', e['count_tot'], ',"', e['ip'], '",', e['port'], ',', e['count'], ',', e['account'], ',', e['avg_bal'], sep='')
+        print(e['time_start'], ',', e['time_end'], ',', e['count_tot'], ',"', e['ip'], '",', e['port'], ',', e['count'], ',', e['account'], ',', e['avg_bal'], ',', e['net_version'], sep='')
 
 # Print aggregated data, by periods
 def regen_aggregated_period(time_start_rel_day, period):

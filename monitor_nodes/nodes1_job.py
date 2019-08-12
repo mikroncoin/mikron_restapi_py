@@ -36,8 +36,8 @@ def nodes_one():
     for obs in config['monitor_nodes.observers']:
         save_nodes(session, obs['url'], obs['firewall'])
 
-def save_node(time, obs_srv, obs_firewall, host, port, account, balance):
-    db_raw.save_node(time, obs_srv, obs_firewall, host, port, account, balance)
+def save_node(time, obs_srv, obs_firewall, host, port, account, balance, net_version):
+    db_raw.save_node(time, obs_srv, obs_firewall, host, port, account, balance, net_version)
     #print("Saved node:", time, obs_srv, obs_firewall, host, port, account, ".")
 
 def save_nodes_int(session, obs_srv, obs_firewall):
@@ -65,7 +65,10 @@ def save_nodes_int(session, obs_srv, obs_firewall):
                     node_id = node['node_id']
                     balan = balance.get_account_balance_cached(now, session, obs_srv, node_id)
                     #print('balan', balan)
-                save_node(now, obs_srv, obs_firewall, host, port, node_id, balan)
+                net_version = 0
+                if 'net_version' in node:
+                    net_version = node['net_version']
+                save_node(now, obs_srv, obs_firewall, host, port, node_id, balan, net_version)
                 cnt = cnt + 1
         return cnt
     except Exception as e:

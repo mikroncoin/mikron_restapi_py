@@ -43,6 +43,12 @@ def create_db_nodeperiod():
     get_logger().info("DB table nodeperiod created")
     close(conn)
 
+def upgrade_db_nodeperiod_2():
+        c, conn = connect(get_db_name_nodecompute())
+        c.execute('''ALTER TABLE nodeperiod ADD COLUMN net_version text''')
+        get_logger().info("DB table nodeperiod upgraded")
+        close(conn)
+
 def create_db_nodedaily():
     c, conn = connect(get_db_name_nodecompute())
     c.execute('''CREATE TABLE nodedaily
@@ -64,6 +70,12 @@ def create_db_nodedaily():
             )''')
     get_logger().info("DB table nodedaily created")
     close(conn)
+
+def upgrade_db_nodedaily_2():
+        c, conn = connect(get_db_name_nodecompute())
+        c.execute('''ALTER TABLE nodedaily ADD COLUMN net_version text''')
+        get_logger().info("DB table nodedaily upgraded")
+        close(conn)
 
 def delete_period_filter_time(time_start):
     c, conn = connect(get_db_name_nodecompute())
@@ -107,7 +119,8 @@ def add_period_entries(entries):
             str(e['port']) + "', "+\
             str(e['count']) + ", '"+\
             str(e['account']) + "', "+\
-            str(e['avg_bal']) + ""+\
+            str(e['avg_bal']) + ", '"+\
+            str(e['net_version']) + "'"+\
             ");"
         c.execute(sql_command)
         ret = c.fetchall()
@@ -204,7 +217,7 @@ def get_daily_latest_sent_time():
         return 0
     return ret[0]['max']
 
-def add_daily(time_start, time_end, ip, port, account, count_pos, count_neg, count_nonempty, avg_bal):
+def add_daily(time_start, time_end, ip, port, account, count_pos, count_neg, count_nonempty, avg_bal, net_version):
     c, conn = connect(get_db_name_nodecompute())
     sql_command = "INSERT INTO nodedaily VALUES ("+\
         str(time_start) + ", "+\
@@ -217,7 +230,8 @@ def add_daily(time_start, time_end, ip, port, account, count_pos, count_neg, cou
         str(count_nonempty) + ", '"+\
         str(avg_bal) + "'," +\
         "0, '?', '', '', " +\
-        "'', ''" +\
+        "'', '', '" +\
+        str(net_version) + "'" +\
         ");"
     c.execute(sql_command)
     ret = c.fetchall()

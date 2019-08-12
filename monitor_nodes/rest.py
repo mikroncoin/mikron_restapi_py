@@ -39,6 +39,7 @@ def getRewards3():
                 'ip': n['ip'],
                 'port': n['port'],
                 'account': n['account'],
+                'net_version': n['net_version'],
                 'count_pos': n['count_pos'],
                 'count_neg': n['count_neg'],
                 'count_nonempty': n['count_nonempty'],
@@ -78,6 +79,7 @@ def getPeriods6():
                 'count': n['count'],
                 'account': n['account'],
                 'avg_bal': 0.001 * int(1000 * float(n['avg_bal'])),
+                'net_version': n['net_version'],
             })
     except:
         ret = ['ERROR']

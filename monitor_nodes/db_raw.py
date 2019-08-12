@@ -77,12 +77,13 @@ def create_db_noderaw_dbname(dbname):
             ip text,
             port text,
             account text,
-            balance text
+            balance text,
+            net_version text
             )''')
     get_logger().info("DB table noderaw created, " + dbname)
     close(conn)
 
-def save_node1(dbname, time, obs_srv, obs_firewall, host, port, account, balance):
+def save_node1(dbname, time, obs_srv, obs_firewall, host, port, account, balance, net_version):
     c, conn = connect(dbname)
     sql_command = "INSERT INTO noderaw VALUES ('"+\
         str(time) + "', '"+\
@@ -91,7 +92,8 @@ def save_node1(dbname, time, obs_srv, obs_firewall, host, port, account, balance
         str(host) + "', '"+\
         str(port) + "', '"+\
         str(account) + "', '"+\
-        str(balance) + "'"+\
+        str(balance) + "', '"+\
+        str(net_version) + "'"+\
         ");"
     #print(sql_command)
     c.execute(sql_command)
@@ -100,16 +102,16 @@ def save_node1(dbname, time, obs_srv, obs_firewall, host, port, account, balance
 
     close(conn)
 
-def save_node(time, obs_srv, obs_firewall, host, port, account, balance):
+def save_node(time, obs_srv, obs_firewall, host, port, account, balance, net_version):
     dbname = __get_db_name_time(time)
     try:
-        save_node1(dbname, time, obs_srv, obs_firewall, host, port, account, balance)
+        save_node1(dbname, time, obs_srv, obs_firewall, host, port, account, balance, net_version)
     except Exception as e:
         # try creating table
         try:
             get_logger().error("Could not save nodes, maybe table does not exits, DB: " + str(dbname) + " e: " + str(e))
             create_db_noderaw_dbname(dbname)
-            save_node1(dbname, time, obs_srv, obs_firewall, host, port, account, balance)
+            save_node1(dbname, time, obs_srv, obs_firewall, host, port, account, balance, net_version)
         except Exception as e2:
             get_logger().error("Could not save node to DB " + str(dbname) + " e: " + str(e2))
 
