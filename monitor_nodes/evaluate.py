@@ -85,21 +85,25 @@ def evaluate_periods(time_start, time_end, period):
             node_dict = {}   # key is endpoint
             for n in nodes:
                 endpoint = n['ip'] + ':' + n['port']
+                net_version = 0
+                if 'net_version' in n:
+                    net_version = n['net_version']
                 if endpoint not in node_dict:
                     node_dict[endpoint] = {
                         'ip': n['ip'],
                         'port': n['port'],
-                        'count': 0, 
-                        'sum_bal': 0, 
+                        'count': 0,
+                        'sum_bal': 0,
                         'account': n['account'],
-                        'net_version': n['net_version'],
+                        'net_version': net_version,
                     }
                 #print('  ', endpoint, n['balance'])
                 entry = node_dict[endpoint]
                 node_dict[endpoint]['count'] = entry['count'] + 1
                 node_dict[endpoint]['sum_bal'] = entry['sum_bal'] + float(n['balance'])
                 # Update net_version to the last
-                node_dict[endpoint]['net_version'] = n['net_version']
+                if 'net_version' in n:
+                    node_dict[endpoint]['net_version'] = n['net_version']
             # aggregated results
             #print('node_dict', len(node_dict))
             # Do bulk insert
