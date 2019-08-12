@@ -115,8 +115,12 @@ def save_node(time, obs_srv, obs_firewall, host, port, account, balance, net_ver
         except Exception as e2:
             get_logger().error("Could not save node to DB " + str(dbname) + " e: " + str(e2))
 
+def get_all_nodes_unordered(time_start_rel_day):
+    now = int(time.time())
+    return get_nodes_filter_time(now - time_start_rel_day * 86400, now + 2 * 86400)
+
 # without time range, should not be used
-def get_all_nodes_unordered():
+def get_all_nodes_unordered_all():
     now = int(time.time())
     return get_nodes_filter_time(now - 60 * 86400, now + 2 * 86400)
 

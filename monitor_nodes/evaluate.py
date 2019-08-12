@@ -398,8 +398,8 @@ def evaluate_days(time_start, time_end):
     stop_evaluate_days()
 
 # Dump all raw data
-def dump_raw():
-    nodes = db_raw.get_all_nodes_unordered()
+def dump_raw(time_start_rel_day):
+    nodes = db_raw.get_all_nodes_unordered(time_start_rel_day)
     print(str(len(nodes)) + " nodes")
     for n in nodes:
         net_version = 0
