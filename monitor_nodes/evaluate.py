@@ -152,6 +152,7 @@ def __evaluate_daily(time_start):
         ip = e['ip']
         count_pos = int(e['count_pos'])
         count_neg = int(e['count_neg'])
+        net_version = int(e['net_version'])
 
         eligible = 1
         deny_reason = 'OK'
@@ -167,6 +168,11 @@ def __evaluate_daily(time_start):
             if (count_neg >= 29):
                 eligible = 0
                 deny_reason = 'Not online enough, not seen in ' + str(count_neg) + ' 10-minute periods'
+        # Evaluate: deny if net_version is too low (old, version 4 is minimum, epoch2)
+        if eligible > 0:
+            if (net_version < 4):
+                eligible = 0
+                deny_reason = 'Protocol version is too old (' + str(net_version) + ')'
 
         e['eligible'] = eligible
         e['deny_reason'] = deny_reason
