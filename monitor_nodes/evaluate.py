@@ -98,6 +98,8 @@ def evaluate_periods(time_start, time_end, period):
                 entry = node_dict[endpoint]
                 node_dict[endpoint]['count'] = entry['count'] + 1
                 node_dict[endpoint]['sum_bal'] = entry['sum_bal'] + float(n['balance'])
+                # Update net_version to the last
+                node_dict[endpoint]['net_version'] = n['net_version']
             # aggregated results
             #print('node_dict', len(node_dict))
             # Do bulk insert
@@ -309,11 +311,13 @@ def evaluate_days(time_start, time_end):
                 for e in nodes:
                     ip = e['ip']
                     port = e['port']
+                    net_version = e['net_version']
                     port2 = 0
                     if ip in node_dict:
                         # This node is already seen. Override record, but take port from it into port2 if different.
                         if node_dict[ip]['port'] != port:
                             port2 = node_dict[ip]['port']
+                        node_dict[ip]['net_version'] = net_version
                     node_dict[ip] = {
                         'ip': ip,
                         'port': port,
@@ -325,7 +329,7 @@ def evaluate_days(time_start, time_end):
                         'avg_bal': 0.0,
                         'eligible': 1,
                         'deny_reason': 'OK',
-                        'net_version': e['net_version']
+                        'net_version': net_version
                     }
         #print('.')
         period_cnt_empty = periods_per_day - period_cnt_nonempty
@@ -446,7 +450,7 @@ def dump_aggregated_daily(time_start_rel_day):
         ip = e['ip']
         eligible = int(e['eligible'])
         if eligible != 0:
-            print('  ', date_time_start.isoformat(), time_start, ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['count_nonempty'], e['avg_bal'], e['port'], e['account'], e['reward_elig'], e['reward_sent'], e['sent_time'], e['sent_hash'])
+            print('  ', date_time_start.isoformat(), time_start, ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['count_nonempty'], e['avg_bal'], e['port'], e['account'], e['reward_elig'], e['reward_sent'], e['sent_time'], e['sent_hash'], e['net_version'])
     print('Non-eligible nodes:')
     for e in ret:
         time_start = int(e['time_start'])
@@ -454,12 +458,12 @@ def dump_aggregated_daily(time_start_rel_day):
         ip = e['ip']
         eligible = int(e['eligible'])
         if eligible == 0:
-            print('  ', date_time_start.isoformat(), time_start, ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['count_nonempty'], e['avg_bal'], e['port'], e['account'], e['reward_elig'], e['reward_sent'], e['sent_time'], e['sent_hash'])
+            print('  ', date_time_start.isoformat(), time_start, ip, eligible, e['deny_reason'], e['count_pos'], e['count_neg'], e['count_nonempty'], e['avg_bal'], e['port'], e['account'], e['reward_elig'], e['reward_sent'], e['sent_time'], e['sent_hash'], e['net_version'])
     # CSV
     print('#CSV')
-    print('time_start, time_end, ip, port, account, count_pos, count_neg, count_nonempty, avg_bal, eligible, deny_reason, reward_elig, reward_sent, sent_hash, sent_time')
+    print('time_start, time_end, ip, port, account, count_pos, count_neg, count_nonempty, avg_bal, eligible, deny_reason, reward_elig, reward_sent, sent_hash, sent_time, net_version')
     for e in ret:
-        print(e['time_start'], ',', e['time_end'], ',"', e['ip'], '",', e['port'], ',', e['account'], ',', e['count_pos'], ',', e['count_neg'], ',', e['count_nonempty'], ',', e['avg_bal'], ',', e['eligible'], ',"', e['deny_reason'], '",', e['reward_elig'], ',', e['reward_sent'], ',', e['sent_hash'], ',', e['sent_time'], sep='')
+        print(e['time_start'], ',', e['time_end'], ',"', e['ip'], '",', e['port'], ',', e['account'], ',', e['count_pos'], ',', e['count_neg'], ',', e['count_nonempty'], ',', e['avg_bal'], ',', e['eligible'], ',"', e['deny_reason'], '",', e['reward_elig'], ',', e['reward_sent'], ',', e['sent_hash'], ',', e['sent_time'], ',', e['net_version'], sep='')
 
 # Reevaluate daily data
 def regen_aggregated_daily(time_start_rel_day, reeval_periods = False):
