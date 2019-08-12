@@ -152,8 +152,11 @@ def __evaluate_daily(time_start):
         ip = e['ip']
         count_pos = int(e['count_pos'])
         count_neg = int(e['count_neg'])
-        net_version = int(e['net_version'])
-
+        net_version = 0
+        try:
+            net_version = int(e['net_version'])
+        except:
+            net_version = 0
         eligible = 1
         deny_reason = 'OK'
         e['reward_elig'] = 0
