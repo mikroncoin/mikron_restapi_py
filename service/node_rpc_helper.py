@@ -169,7 +169,7 @@ def getBlockInfos(block_hash_array):
     global rai
     try:	
         #print("getBlockInfos ", block_hash_array)
-        blocks = rai.blocks_info({"hashes": block_hash_array})
+        blocks = rai.blocks_info({"hashes": block_hash_array, "include_comment": "true"})
         #print(blocks)
     except:
         return {"error": "exception"}
@@ -245,7 +245,8 @@ def getAccountsTop(count):
         count = min(50, int(count))
         ledger = rai.ledger({
             "sorting": "true",
-            "count": count
+            "count": count,
+            "include_comment": "true"
         })
         #print(ledger)
         if ledger is None:
@@ -271,7 +272,8 @@ def getAccountsRecent(count):
         # get accounts with most recent transactions
         ledger = rai.ledger({
             "sorting_by_time": "true",
-            "count": count
+            "count": count,
+            "include_comment": "true"
         })
         #print('ledger', ledger)
         if ledger is None:

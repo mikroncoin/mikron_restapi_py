@@ -109,8 +109,12 @@ function loadAccountsRecent(blocks_text) {
         var amount_signed = amount_sign * amount;
         var date_string = block.contents.creation_time_as_date;
         var age_nice = niceAge(block.contents.creation_time, date_string);
-        list += "<tr><td><a href='/explorer/account/" + acc + "'>" + acc.substring(0, 15) +
-            "...</a></td><td><b>" + amount_signed + "</b></td><td>" + age_nice + "</td></tr>";
+        var acc_pretty = acc.substring(0, 15) + "...";
+        if (block.account_comment) {
+            acc_pretty = acc_pretty + " " + block.account_comment;
+        }
+        list += "<tr><td><a href='/explorer/account/" + acc + "'>" + acc_pretty +
+            "</a></td><td><b>" + amount_signed + "</b></td><td>" + age_nice + "</td></tr>";
     }
     list += "</table>";
     document.getElementById('transactions_recent_list').innerHTML = list;
@@ -124,8 +128,12 @@ function loadAccountsTop(accounts_text) {
         //console.log(acc);
         //console.log(accounts[acc]);
         balance = accounts[acc].balance;
-        list += "<tr><td><a href='/explorer/account/" + acc + "'>" + acc.substring(0, 15) +
-            "...</a></td><td>" + balance + "</td></tr>";
+        var acc_pretty = acc.substring(0, 15) + "...";
+        if (accounts[acc].account_comment) {
+            acc_pretty = acc_pretty + " " + accounts[acc].account_comment;
+        }
+        list += "<tr><td><a href='/explorer/account/" + acc + "'>" + acc_pretty +
+            "</a></td><td>" + balance + "</td></tr>";
     }
     list += "</table>";
     document.getElementById('accounts_top_list').innerHTML = list;
